@@ -1,8 +1,8 @@
 def train_unet():
     import lightning as L
 
-    from src.module.data.datamodule import FMAMelSpectrogramDataModule
-    from src.module.model.unet import UNet
+    from module.data.datamodule import FMAMelSpectrogramDataModule
+    from module.model.unet import UNet
 
     datamodule = FMAMelSpectrogramDataModule(
         metadata_dir="./data/FMA/fma_metadata",
@@ -14,6 +14,6 @@ def train_unet():
 
     trainer = L.Trainer(
         max_epochs=1,
-        # fast_dev_run=True,
+        fast_dev_run=True,
     )
     trainer.fit(model, datamodule=datamodule)

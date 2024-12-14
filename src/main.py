@@ -1,5 +1,5 @@
 def main():
-    from src.train import train_unet
+    from train import train_unet
 
     train_unet()
 
