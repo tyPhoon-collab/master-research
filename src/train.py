@@ -14,6 +14,7 @@ def train_unet():
 
     trainer = L.Trainer(
         max_epochs=1,
-        fast_dev_run=True,
+        # fast_dev_run=True,
+        default_root_dir="./data/ckpt/unet",
     )
     trainer.fit(model, datamodule=datamodule)
