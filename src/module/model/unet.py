@@ -3,7 +3,7 @@ import torch
 from diffusers.models.unets.unet_2d import UNet2DModel
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 
-from src.module.data.dataset import FMADataset
+from module.data.dataset import FMADataset
 
 
 class UNet(L.LightningModule):
