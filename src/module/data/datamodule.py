@@ -1,8 +1,9 @@
 from os import PathLike
 
-import pytorch_lightning as L
+import lightning as L
 from torch.utils.data import DataLoader, random_split
-from torchaudio.transforms import MelSpectrogram
+from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
+from torchvision.transforms import Compose
 
 from src.module.data.dataset import FMADataset
 
@@ -22,13 +23,19 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
         self.audio_dir = audio_dir
         self.sample_rate = sample_rate
         self.batch_size = batch_size
-        self.transform = MelSpectrogram(
-            sample_rate=sample_rate,
-            n_fft=2048,
-            win_length=2048,
-            hop_length=256,
-            n_mels=160,
-            power=2.0,
+        self.transform = Compose(
+            [
+                MelSpectrogram(
+                    sample_rate=sample_rate,
+                    n_fft=2048,
+                    win_length=2048,
+                    hop_length=256,
+                    n_mels=160,
+                    power=2.0,
+                ),
+                AmplitudeToDB(),
+                lambda mel: mel[..., :2560],
+            ]
         )
         self.val_split = val_split
 
@@ -55,6 +62,7 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
+            collate_fn=FMADataset.collate_fn,
         )
 
     def val_dataloader(self):
@@ -62,4 +70,5 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
+            collate_fn=FMADataset.collate_fn,
         )

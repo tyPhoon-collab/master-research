@@ -9,13 +9,17 @@ import torch
 import torchaudio
 from torch.utils.data import Dataset
 
-FMADatasetReturn = tuple[torch.Tensor, str]
+Genres = torch.Tensor
+FMADatasetReturn = tuple[torch.Tensor, Genres]
 InputType = TypeVar("InputType", bound=torch.Tensor)
 OutputType = TypeVar("OutputType")
 Transform = Callable[[InputType], OutputType]
 
 
 class FMADataset(Dataset[FMADatasetReturn]):
+    PADDING_INDEX = 163
+    NUM_GENRES = 163 + 1
+
     def __init__(
         self,
         *,
@@ -47,8 +51,29 @@ class FMADataset(Dataset[FMADatasetReturn]):
         self.genres = self.metadata["track_genres"]
         self.ids = self.metadata["track_id"]
 
+        df_genres = pl.read_csv(os.path.join(metadata_dir, "genres.csv"))
+        self.genre_index_map = {genre: i for i, genre in enumerate(df_genres["title"])}
+
         # for instance cache
         self.resamples: dict[int, torchaudio.transforms.Resample] = {}
+
+    @classmethod
+    def collate_fn(cls, batch: list[FMADatasetReturn]) -> FMADatasetReturn:
+        waveforms, genres = zip(*batch)
+
+        batch_waveforms = torch.stack(waveforms)
+
+        max_genre_dim = max(genre.size(0) for genre in genres)
+
+        batch_genres = torch.full(
+            (len(genres), max_genre_dim),
+            cls.PADDING_INDEX,
+        )
+
+        for i, genre in enumerate(genres):
+            batch_genres[i, : genre.size(0)] = genre
+
+        return batch_waveforms, batch_genres
 
     def __len__(self):
         return len(self.ids)
@@ -62,9 +87,9 @@ class FMADataset(Dataset[FMADatasetReturn]):
         waveform = self._trim_or_pad_waveform(waveform)
 
         transformed = self._transform(waveform)
-        genre_title = self._parse_genres(index)
+        genres = self._convert_to_genre_indics(index)
 
-        return transformed, genre_title
+        return transformed, genres
 
     def _load(self, id):
         audio_path = self._build_audio_path(id)
@@ -78,13 +103,15 @@ class FMADataset(Dataset[FMADatasetReturn]):
             raise RuntimeError(f"Failed to load audio file: {audio_path}")
         return waveform, sr
 
-    def _parse_genres(self, index) -> str:
+    def _convert_to_genre_indics(self, index) -> Genres:
         raw_genre: str = self.genres[index]
         genres = json.loads(
             raw_genre.replace("'", '"'),
         )
 
-        return genres[0]["genre_title"]
+        titles = [genre["genre_title"] for genre in genres]
+
+        return torch.tensor([self.genre_index_map[title] for title in titles])
 
     def _transform(self, waveform):
         return self.transform(waveform) if self.transform else waveform

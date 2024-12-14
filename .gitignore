@@ -10,3 +10,4 @@ wheels/
 .venv
 data/ckpt/*
 output/*
+lightning_logs

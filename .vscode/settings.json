@@ -1,13 +1,19 @@
 {
     "cSpell.words": [
+        "DDIM",
+        "DDPM",
+        "downsample",
         "downsampling",
         "keepdim",
         "librosa",
         "mels",
         "randn",
         "timestep",
+        "timesteps",
         "torchaudio",
         "torchvision",
+        "unet",
+        "unets",
         "upsampling"
     ],
     "python.analysis.typeCheckingMode": "standard",

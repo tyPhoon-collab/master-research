@@ -18,11 +18,10 @@ def test_dataset():
 
     assert len(dataset) > 0
 
-    waveform, genre = dataset[0]
+    waveform, genres = dataset[0]
 
     assert isinstance(waveform, torch.Tensor)
-    assert isinstance(genre, str)
-    assert genre == "Hip-Hop"
+    assert isinstance(genres, torch.Tensor)
 
 
 def test_datamodule():
@@ -30,8 +29,7 @@ def test_datamodule():
         metadata_dir=metadata_dir,
         audio_dir=audio_dir,
         sample_rate=sample_rate,
-        batch_size=32,
-        val_split=0.2,
+        batch_size=16,
     )
 
     datamodule.setup("fit")
@@ -42,7 +40,7 @@ def test_datamodule():
     assert len(train_dataloader) > 0
     assert len(val_dataloader) > 0
 
-    mel, genre = next(iter(train_dataloader))
+    mel, genres = next(iter(train_dataloader))
 
     assert mel.ndim == 4  # batch, channel, height, width
-    assert isinstance(genre, tuple)
+    assert isinstance(genres, torch.Tensor)
