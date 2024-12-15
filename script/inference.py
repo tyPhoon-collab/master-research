@@ -11,7 +11,7 @@ def inference_unet(
 
     # TODO: consider genres
     # とりあえずHip-Hopのジャンルを指定
-    genres = genres or torch.tensor([21])
+    genres = genres or torch.tensor([[21]], device=model.device)
 
     model.eval()
     # TODO: consider custom scheduler
@@ -19,11 +19,11 @@ def inference_unet(
     scheduler.set_timesteps(1000)
 
     # TODO: consider noise shape
-    sample = torch.randn(1, 1, 160, 2560)
+    sample = torch.randn(1, 1, 160, 2560, device=model.device)
 
     for t in scheduler.timesteps:
         with torch.no_grad():
-            noise_pred = model(t, genres).sample
-        sample = scheduler.step(noise_pred, int(t.item()), sample).prev_sample  # type: ignore
+            noise_pred = model(sample, t, genres).sample
+            sample = scheduler.step(noise_pred, int(t.item()), sample).prev_sample  # type: ignore
 
     return sample
