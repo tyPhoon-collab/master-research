@@ -1,9 +1,11 @@
 import lightning as L
 import torch
+import torch.nn.functional as F
 from diffusers.models.unets.unet_2d import UNet2DModel
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
+from torch.optim import Adam
 
-from module.data.dataset import NUM_GENRES, PADDING_INDEX
+from src.module.data.dataset import NUM_GENRES, PADDING_INDEX
 
 
 class UNet(L.LightningModule):
@@ -35,6 +37,8 @@ class UNet(L.LightningModule):
             downsample_type="resnet",
             layers_per_block=1,
         )
+
+        # TODO: Is an EmbeddingBag good?
         self.model.class_embedding = torch.nn.EmbeddingBag(  # type: ignore
             num_class_embeds,
             256,
@@ -54,16 +58,17 @@ class UNet(L.LightningModule):
         )
         noisy_mel = self.scheduler.add_noise(mel, noise, timesteps)  # type: ignore
 
-        residual = self(noisy_mel, timesteps, class_labels=genres).sample
+        # forward
+        residual = self(noisy_mel, timesteps, genres).sample
 
-        loss = torch.nn.functional.mse_loss(residual, noise)
+        loss = F.mse_loss(residual, noise)
         self.log("train_loss", loss, prog_bar=True)
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
-        # scheduler = ...
+        optimizer = Adam(self.parameters(), lr=self.lr)  # TODO: consider decay
+        # scheduler = ...  # TODO: add scheduler
         return optimizer
 
-    def forward(self, x, timestep, **kwargs):
-        return self.model(x, timestep, **kwargs)
+    def forward(self, x, timestep, genres: torch.Tensor):
+        return self.model(x, timestep, class_labels=genres)

@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader, random_split
 from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
 from torchvision.transforms import Compose
 
-from module.data.dataset import FMADataset, collate_fn
+from src.module.data.dataset import FMADataset, collate_fn
 
 
 class FMAMelSpectrogramDataModule(L.LightningDataModule):

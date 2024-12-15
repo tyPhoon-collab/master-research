@@ -1,7 +1,3 @@
-import sys
-
-sys.path.append("src")
-
 metadata_dir = "E:/Dataset/FMA/fma_metadata"
 audio_dir = "E:/Dataset/FMA/fma_small"
 sample_rate = 22050
@@ -10,7 +6,7 @@ sample_rate = 22050
 def test_dataset():
     import torch
 
-    from module.data.dataset import FMADataset
+    from src.module.data.dataset import FMADataset
 
     dataset = FMADataset(
         metadata_dir=metadata_dir,
@@ -30,7 +26,7 @@ def test_dataset():
 def test_datamodule():
     import torch
 
-    from module.data.datamodule import FMAMelSpectrogramDataModule
+    from src.module.data.datamodule import FMAMelSpectrogramDataModule
 
     datamodule = FMAMelSpectrogramDataModule(
         metadata_dir=metadata_dir,

@@ -8,8 +8,8 @@ import torch
 import torchaudio
 from torch.utils.data import Dataset
 
-from loader.audio_loader import AudioLoader, TorchAudioLoader
-from loader.csv_loader import load_multi_header_csv
+from src.loader.audio_loader import AudioLoader, TorchAudioLoader
+from src.loader.csv_loader import load_multi_header_csv
 
 Genres = torch.Tensor
 FMADatasetReturn = tuple[torch.Tensor, Genres]

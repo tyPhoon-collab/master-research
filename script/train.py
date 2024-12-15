@@ -1,8 +1,8 @@
 def train_unet():
     import lightning as L
 
-    from module.data.datamodule import FMAMelSpectrogramDataModule
-    from module.model.unet import UNet
+    from src.module.data.datamodule import FMAMelSpectrogramDataModule
+    from src.module.model.unet import UNet
 
     datamodule = FMAMelSpectrogramDataModule(
         metadata_dir="./data/FMA/fma_metadata",
