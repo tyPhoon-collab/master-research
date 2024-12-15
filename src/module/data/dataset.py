@@ -1,7 +1,6 @@
 import json
 import os
 from collections.abc import Callable
-from os import PathLike
 from typing import TypeVar
 
 import polars as pl
@@ -10,6 +9,7 @@ import torchaudio
 from torch.utils.data import Dataset
 
 from loader.audio_loader import AudioLoader, TorchAudioLoader
+from loader.csv_loader import load_multi_header_csv
 
 Genres = torch.Tensor
 FMADatasetReturn = tuple[torch.Tensor, Genres]
@@ -17,24 +17,53 @@ InputType = TypeVar("InputType", bound=torch.Tensor)
 OutputType = TypeVar("OutputType")
 Transform = Callable[[InputType], OutputType]
 
+# [mdeff/fma Wiki](https://github.com/mdeff/fma/wiki#excerpts-shorter-than-30s-and-erroneous-audio-length-metadata)
+# 不完全なデータあるため、それらは削除する
+# fma_small/098/098565.mp3 => 1.6s
+# fma_small/098/098567.mp3 => 0.5s
+# fma_small/098/098569.mp3 => 1.5s
+# fma_small/099/099134.mp3 => 0s
+# fma_small/108/108925.mp3 => 0s
+# fma_small/133/133297.mp3 => 0s
+_default_ignore_ids = [98565, 98567, 98569, 99134, 108925, 133297]
+
+PADDING_INDEX = 163
+NUM_GENRES = 163 + 1
+
+
+def collate_fn(batch: list[FMADatasetReturn]) -> FMADatasetReturn:
+    waveforms, genres = zip(*batch)
+
+    batch_waveforms = torch.stack(waveforms)
+
+    max_genre_dim = max(genre.size(0) for genre in genres)
+
+    batch_genres = torch.full(
+        (len(genres), max_genre_dim),
+        PADDING_INDEX,
+    )
+
+    for i, genre in enumerate(genres):
+        batch_genres[i, : genre.size(0)] = genre
+
+    return batch_waveforms, batch_genres
+
 
 class FMADataset(Dataset[FMADatasetReturn]):
-    PADDING_INDEX = 163
-    NUM_GENRES = 163 + 1
-
     def __init__(
         self,
         *,
-        metadata_dir: PathLike | str,
-        audio_dir: PathLike | str,
+        metadata_dir: str,
+        audio_dir: str,
         sample_rate: int,
         transform: Transform | None = None,
         audio_loader: AudioLoader | None = None,  # default is torchaudio loader
+        ignore_ids: list[int] | None = _default_ignore_ids,
     ):
         super().__init__()
 
-        metadata_path = os.path.join(metadata_dir, "raw_tracks.csv")
-        all_metadata = pl.read_csv(metadata_path)
+        metadata_path = os.path.join(metadata_dir, "tracks.csv")
+        all_metadata = load_multi_header_csv(metadata_path, 3)
 
         self.audio_dir = audio_dir
         self.sample_rate = sample_rate
@@ -55,17 +84,7 @@ class FMADataset(Dataset[FMADatasetReturn]):
         if len(exists_metadata) == 0:
             raise FileNotFoundError("No valid audio file found")
 
-        # [mdeff/fma Wiki](https://github.com/mdeff/fma/wiki#excerpts-shorter-than-30s-and-erroneous-audio-length-metadata)
-        # 不完全なデータあるため、それらは削除する
-        # fma_small/098/098565.mp3 => 1.6s
-        # fma_small/098/098567.mp3 => 0.5s
-        # fma_small/098/098569.mp3 => 1.5s
-        # fma_small/099/099134.mp3 => 0s
-        # fma_small/108/108925.mp3 => 0s
-        # fma_small/133/133297.mp3 => 0s
-
-        invalid_ids = [98565, 98567, 98569, 99134, 108925, 133297]
-        self.ids = exists_metadata.filter(~pl.col("track_id").is_in(invalid_ids))[
+        self.ids = exists_metadata.filter(~pl.col("track_id").is_in(ignore_ids or []))[
             "track_id"
         ]
 
@@ -73,31 +92,10 @@ class FMADataset(Dataset[FMADatasetReturn]):
 
         df_genres = pl.read_csv(os.path.join(metadata_dir, "genres.csv"))
 
-        # track_genresに含まれるgenre_titleに表記揺れがありそうなので、idで管理する
-        self.genre_index_map = {
-            str(id): i for i, id in enumerate(df_genres["genre_id"])
-        }
+        self.genre_index_map = {id: i for i, id in enumerate(df_genres["genre_id"])}
 
         # for instance cache
         self.resamples: dict[int, torchaudio.transforms.Resample] = {}
-
-    @classmethod
-    def collate_fn(cls, batch: list[FMADatasetReturn]) -> FMADatasetReturn:
-        waveforms, genres = zip(*batch)
-
-        batch_waveforms = torch.stack(waveforms)
-
-        max_genre_dim = max(genre.size(0) for genre in genres)
-
-        batch_genres = torch.full(
-            (len(genres), max_genre_dim),
-            cls.PADDING_INDEX,
-        )
-
-        for i, genre in enumerate(genres):
-            batch_genres[i, : genre.size(0)] = genre
-
-        return batch_waveforms, batch_genres
 
     def __len__(self):
         return len(self.ids)

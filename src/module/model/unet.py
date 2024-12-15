@@ -3,14 +3,15 @@ import torch
 from diffusers.models.unets.unet_2d import UNet2DModel
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 
-from module.data.dataset import FMADataset
+from module.data.dataset import NUM_GENRES, PADDING_INDEX
 
 
 class UNet(L.LightningModule):
     def __init__(self):
         super().__init__()
 
-        num_class_embeds = FMADataset.NUM_GENRES
+        num_class_embeds = NUM_GENRES
+
         self.model = UNet2DModel(
             in_channels=1,
             out_channels=1,
@@ -37,7 +38,7 @@ class UNet(L.LightningModule):
         self.model.class_embedding = torch.nn.EmbeddingBag(  # type: ignore
             num_class_embeds,
             256,
-            padding_idx=FMADataset.PADDING_INDEX,
+            padding_idx=PADDING_INDEX,
         )
         self.scheduler = DDPMScheduler()
 

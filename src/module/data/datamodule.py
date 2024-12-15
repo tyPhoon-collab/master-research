@@ -1,20 +1,18 @@
-from os import PathLike
-
 import lightning as L
 import torch
 from torch.utils.data import DataLoader, random_split
 from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
 from torchvision.transforms import Compose
 
-from module.data.dataset import FMADataset
+from module.data.dataset import FMADataset, collate_fn
 
 
 class FMAMelSpectrogramDataModule(L.LightningDataModule):
     def __init__(
         self,
         *,
-        metadata_dir: PathLike | str,
-        audio_dir: PathLike | str,
+        metadata_dir: str,
+        audio_dir: str,
         sample_rate: int,
         batch_size: int,
         val_split: float = 0.2,
@@ -65,7 +63,7 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            collate_fn=FMADataset.collate_fn,
+            collate_fn=collate_fn,
         )
 
     def val_dataloader(self):
@@ -73,7 +71,7 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            collate_fn=FMADataset.collate_fn,
+            collate_fn=collate_fn,
         )
 
 
