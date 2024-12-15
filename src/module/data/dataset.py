@@ -1,4 +1,4 @@
-import json
+import ast
 import os
 from collections.abc import Callable
 from typing import TypeVar
@@ -87,12 +87,10 @@ class FMADataset(Dataset[FMADatasetReturn]):
         self.ids = exists_metadata.filter(~pl.col("track_id").is_in(ignore_ids or []))[
             "track_id"
         ]
+        self.str_genre_ids = exists_metadata["track_genres"]
 
-        self.genres = exists_metadata["track_genres"]
-
-        df_genres = pl.read_csv(os.path.join(metadata_dir, "genres.csv"))
-
-        self.genre_index_map = {id: i for i, id in enumerate(df_genres["genre_id"])}
+        genre_ids = pl.read_csv(os.path.join(metadata_dir, "genres.csv"))["genre_id"]
+        self.genre_id_to_index_map = {id: i for i, id in enumerate(genre_ids)}
 
         # for instance cache
         self.resamples: dict[int, torchaudio.transforms.Resample] = {}
@@ -105,7 +103,7 @@ class FMADataset(Dataset[FMADatasetReturn]):
         audio_path = self._to_audio_path(id)
 
         waveform, sr = self.audio_loader.load(audio_path)
-        resampled_waveform = self._resample(sr, waveform)
+        resampled_waveform = self._resample(waveform, sr)
         transformed = self._transform(resampled_waveform)
 
         genres = self._to_genre_indics(index)
@@ -113,19 +111,14 @@ class FMADataset(Dataset[FMADatasetReturn]):
         return transformed, genres
 
     def _to_genre_indics(self, index) -> Genres:
-        raw_genre: str = self.genres[index]
-        genres = json.loads(
-            raw_genre.replace("'", '"'),
-        )
+        genre_ids: list[int] = ast.literal_eval(self.str_genre_ids[index])
 
-        genre_ids = [genre["genre_id"] for genre in genres]
-
-        return torch.tensor([self.genre_index_map[id] for id in genre_ids])
+        return torch.tensor([self.genre_id_to_index_map[id] for id in genre_ids])
 
     def _transform(self, waveform):
         return self.transform(waveform) if self.transform else waveform
 
-    def _resample(self, sr: int, waveform: torch.Tensor):
+    def _resample(self, waveform: torch.Tensor, sr: int):
         if sr != self.sample_rate:
             resample = self.resamples.setdefault(
                 sr,
