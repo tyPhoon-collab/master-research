@@ -8,6 +8,7 @@
         "librosa",
         "mels",
         "randn",
+        "Resampler",
         "timestep",
         "timesteps",
         "torchaudio",

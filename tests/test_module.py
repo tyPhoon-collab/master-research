@@ -1,7 +1,6 @@
-import torch
+import sys
 
-from src.module.data.datamodule import FMAMelSpectrogramDataModule
-from src.module.data.dataset import FMADataset
+sys.path.append("src")
 
 metadata_dir = "E:/Dataset/FMA/fma_metadata"
 audio_dir = "E:/Dataset/FMA/fma_small"
@@ -9,6 +8,10 @@ sample_rate = 22050
 
 
 def test_dataset():
+    import torch
+
+    from module.data.dataset import FMADataset
+
     dataset = FMADataset(
         metadata_dir=metadata_dir,
         audio_dir=audio_dir,
@@ -25,6 +28,10 @@ def test_dataset():
 
 
 def test_datamodule():
+    import torch
+
+    from module.data.datamodule import FMAMelSpectrogramDataModule
+
     datamodule = FMAMelSpectrogramDataModule(
         metadata_dir=metadata_dir,
         audio_dir=audio_dir,
@@ -43,4 +50,7 @@ def test_datamodule():
     mel, genres = next(iter(train_dataloader))
 
     assert mel.ndim == 4  # batch, channel, height, width
+    assert mel.size(1) == 1  # channel is mono
+    assert mel.size(2) == 160  # height is mel bins
+    assert mel.size(3) == 2560  # width is time steps. trimmed to 2560
     assert isinstance(genres, torch.Tensor)

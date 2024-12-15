@@ -1,6 +1,7 @@
 from os import PathLike
 
 import lightning as L
+import torch
 from torch.utils.data import DataLoader, random_split
 from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
 from torchvision.transforms import Compose
@@ -25,6 +26,8 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
         self.batch_size = batch_size
         self.transform = Compose(
             [
+                ToMono(),
+                TrimOrPad(target_length=sample_rate * 30),
                 MelSpectrogram(
                     sample_rate=sample_rate,
                     n_fft=2048,
@@ -72,3 +75,31 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
             shuffle=False,
             collate_fn=FMADataset.collate_fn,
         )
+
+
+class ToMono(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+        if waveform.size(0) > 1:
+            waveform = torch.mean(waveform, dim=0, keepdim=True)
+        return waveform
+
+
+class TrimOrPad(torch.nn.Module):
+    def __init__(self, target_length: int):
+        super().__init__()
+        self.target_length = target_length
+
+    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+        target_length = self.target_length
+        current_length = waveform.size(-1)
+
+        if current_length > target_length:
+            waveform = waveform[..., :target_length]
+        elif current_length < target_length:
+            padding = target_length - current_length
+            waveform = torch.nn.functional.pad(waveform, (0, padding))
+
+        return waveform
