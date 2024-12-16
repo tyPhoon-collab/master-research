@@ -4,7 +4,7 @@ from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
 from torchvision.transforms import Compose
 
 from src.module.data.dataset import FMADataset, collate_fn
-from src.transforms import ToMono, TrimOrPad
+from src.transforms import NormalizeMinusOneToOne, ToMono, TrimOrPad
 
 
 class FMAMelSpectrogramDataModule(L.LightningDataModule):
@@ -36,6 +36,7 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
                 ),
                 AmplitudeToDB(),
                 lambda mel: mel[..., :2560],
+                NormalizeMinusOneToOne(),
             ]
         )
         self.val_split = val_split

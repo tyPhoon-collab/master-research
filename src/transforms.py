@@ -27,3 +27,13 @@ class ToMono(torch.nn.Module):
         if waveform.size(0) > 1:
             waveform = torch.mean(waveform, dim=0, keepdim=True)
         return waveform
+
+
+class NormalizeMinusOneToOne(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+        min = waveform.min()
+        max = waveform.max()
+        return (waveform - min) / (max - min) * 2 - 1

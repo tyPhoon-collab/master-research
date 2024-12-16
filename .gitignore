@@ -13,6 +13,7 @@ output/*
 outputs
 .neptune
 lightning_logs
+notebooks
 
 # Private config
 conf/train/neptune.yaml
