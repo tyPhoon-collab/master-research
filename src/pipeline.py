@@ -4,8 +4,6 @@ from typing import Any
 import torch
 from tqdm import tqdm
 
-from src.module.model.unet import UNet
-
 TimestepCallbackType = Callable[[int, torch.Tensor], None]
 
 
@@ -14,7 +12,7 @@ def _noop_timestep_callback(timestep: int, sample: torch.Tensor) -> None:
 
 
 class UNetDiffusionPipeline:
-    def __init__(self, model: UNet, scheduler: Any | None = None):
+    def __init__(self, model, scheduler: Any | None = None):
         self.model = model
         self.scheduler = scheduler
 
