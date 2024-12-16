@@ -6,11 +6,11 @@ from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from torch.optim import Adam
 
 from src.module.data.dataset import NUM_GENRES, PADDING_INDEX
-from src.module.logger import UNetLogger
+from src.module.logger import DefaultUNetLogger, UNetLogger
 
 
 class UNet(L.LightningModule):
-    def __init__(self):
+    def __init__(self, lr: float = 1e-4, logger: UNetLogger | None = None):
         super().__init__()
 
         num_class_embeds = NUM_GENRES
@@ -47,11 +47,9 @@ class UNet(L.LightningModule):
         )
         self.scheduler = DDPMScheduler()
 
-        # TODO: add to constructor
-        self.lr = 1e-4
-
-        # TODO: consider about this
-        self._logger = UNetLogger(self)
+        self.lr = lr
+        self._logger = logger or DefaultUNetLogger()
+        self._logger.set_model(self)
 
     def training_step(self, batch, batch_idx):
         mel, genres = batch

@@ -6,14 +6,21 @@ dist/
 wheels/
 *.egg-info
 
-# Virtual environments
-.venv
+# Data
 data/ckpt/*
 output/*
+notebooks
+
+# Logging
 outputs
 .neptune
 lightning_logs
-notebooks
+
+# Profile
+*.prof
+
+# Virtual environments
+.venv
 
 # Private config
 conf/train/neptune.yaml

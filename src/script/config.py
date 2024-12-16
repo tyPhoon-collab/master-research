@@ -10,10 +10,12 @@ class TrainConfig:
     sr: int = 22050
     batch_size: int = 2
     epochs: int = 1
+    lr: float = 1e-4
 
     fast_dev_run: bool = False
 
-    logger: dict | None = None
+    trainer_logger: dict | None = None
+    model_logger: dict | None = None
 
 
 @dataclass(frozen=True)

@@ -18,17 +18,26 @@ def train_unet(cfg: TrainConfig):
         batch_size=cfg.batch_size,
         sample_rate=cfg.sr,
     )
-    model = UNet()
 
-    logger = instantiate(cfg.logger) if cfg.logger is not None else None
+    trainer_logger = (
+        instantiate(cfg.trainer_logger) if cfg.trainer_logger is not None else None
+    )
+    model_logger = (
+        instantiate(cfg.model_logger) if cfg.model_logger is not None else None
+    )
+
+    model = UNet(
+        logger=model_logger,
+        lr=cfg.lr,
+    )
 
     trainer = L.Trainer(
         max_epochs=cfg.epochs,
         fast_dev_run=cfg.fast_dev_run,
-        logger=logger,
+        logger=trainer_logger,
     )
     trainer.fit(model, datamodule=datamodule)
 
-    if logger is NeptuneLogger:
-        logger.log_model_summary(model=model, max_depth=-1)
-        logger.log_hyperparams(asdict(cfg))
+    if trainer_logger is NeptuneLogger:
+        trainer_logger.log_model_summary(model=model, max_depth=-1)
+        trainer_logger.log_hyperparams(asdict(cfg))
