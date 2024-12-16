@@ -1,5 +1,6 @@
 defaults:
   - train: default
+  - infer: default
   - _self_
 
 mode: train_unet

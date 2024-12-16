@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
-
-from omegaconf import DictConfig
+from enum import Enum, auto
 
 
 @dataclass(frozen=True)
@@ -14,11 +13,22 @@ class TrainConfig:
 
     fast_dev_run: bool = False
 
-    logger: DictConfig | None = None
+    logger: dict | None = None
+
+
+@dataclass(frozen=True)
+class InferConfig:
+    checkpoint_path: str | None = None
+
+
+class Mode(Enum):
+    train_unet = auto()
+    infer_unet = auto()
 
 
 @dataclass(frozen=True)
 class Config:
-    mode: str = "train_unet"
+    mode: Mode = Mode.train_unet
 
     train: TrainConfig = field(default_factory=TrainConfig)
+    infer: InferConfig = field(default_factory=InferConfig)

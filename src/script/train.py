@@ -3,7 +3,7 @@ from dataclasses import asdict
 from hydra.utils import instantiate
 from pytorch_lightning.loggers import NeptuneLogger
 
-from src.config import TrainConfig
+from src.script.config import TrainConfig
 
 
 def train_unet(cfg: TrainConfig):
