@@ -1,0 +1,10 @@
+metadata_dir: "./data/FMA/fma_metadata"
+audio_dir: "./data/FMA/fma_small"
+
+sr: 22050
+batch_size: 2
+epochs: 1
+
+fast_dev_run: false
+
+logger: null

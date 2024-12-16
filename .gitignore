@@ -10,4 +10,9 @@ wheels/
 .venv
 data/ckpt/*
 output/*
+outputs
+.neptune
 lightning_logs
+
+# Private config
+conf/train/neptune.yaml

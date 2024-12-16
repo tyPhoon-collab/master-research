@@ -4,6 +4,7 @@
         "DDPM",
         "downsample",
         "downsampling",
+        "hyperparams",
         "imshow",
         "keepdim",
         "librosa",

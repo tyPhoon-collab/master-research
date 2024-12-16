@@ -6,6 +6,7 @@ from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from torch.optim import Adam
 
 from src.module.data.dataset import NUM_GENRES, PADDING_INDEX
+from src.module.logger import UNetLogger
 
 
 class UNet(L.LightningModule):
@@ -46,7 +47,11 @@ class UNet(L.LightningModule):
         )
         self.scheduler = DDPMScheduler()
 
+        # TODO: add to constructor
         self.lr = 1e-4
+
+        # TODO: consider about this
+        self._logger = UNetLogger(self)
 
     def training_step(self, batch, batch_idx):
         mel, genres = batch
@@ -62,8 +67,13 @@ class UNet(L.LightningModule):
         residual = self(noisy_mel, timesteps, genres).sample
 
         loss = F.mse_loss(residual, noise)
-        self.log("train_loss", loss, prog_bar=True)
+
+        self._logger.training_step(loss)
+
         return loss
+
+    def on_train_epoch_end(self) -> None:
+        self._logger.on_train_epoch_end()
 
     def configure_optimizers(self):
         optimizer = Adam(self.parameters(), lr=self.lr)  # TODO: consider decay
