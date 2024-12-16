@@ -1,0 +1,1 @@
+eval "$(uv run main.py -sc install=bash)"
