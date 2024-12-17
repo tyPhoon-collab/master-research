@@ -18,6 +18,7 @@ lightning_logs
 
 # Profile
 *.prof
+*.log
 
 # Virtual environments
 .venv

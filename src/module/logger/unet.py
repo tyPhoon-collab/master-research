@@ -1,12 +1,10 @@
-import io
 from abc import ABC, abstractmethod
 
-from neptune.types import File
-from PIL import Image
-from plotly.graph_objs._figure import Figure
+import lightning as L
+from neptune import Run
 
 from src.pipeline import UNetDiffusionPipeline
-from src.plot import plot_spectrogram
+from src.plot import plot_mel_spectrogram_by_librosa
 
 
 class UNetLogger(ABC):
@@ -19,7 +17,7 @@ class UNetLogger(ABC):
         return self.model.logger
 
     def set_model(self, model):
-        self.model = model
+        self.model: L.LightningModule = model
 
     @abstractmethod
     def training_step(self, loss, batch_idx: int): ...
@@ -43,7 +41,11 @@ class NeptuneUNetLogger(DefaultUNetLogger):
 
         self.pipeline_kwargs = pipeline_kwargs
 
-    def set_model(self, model):
+    @property
+    def run(self) -> Run:
+        return self.logger.experiment  # type: ignore
+
+    def set_model(self, model: L.LightningModule):
         super().set_model(model)
 
         self.pipeline = UNetDiffusionPipeline(self.model, self.model.scheduler)
@@ -51,34 +53,22 @@ class NeptuneUNetLogger(DefaultUNetLogger):
     def training_step(self, loss, batch_idx: int):
         super().training_step(loss, batch_idx)
 
-        self.logger.experiment[f"train/batch_{batch_idx}/loss"].append(loss)
+        self.run[f"train/batch_{self.model.current_epoch}/loss"].append(loss)
 
         self.epoch_total_loss += loss.item()
         self.epoch_steps_count += 1
 
     def on_train_epoch_end(self) -> None:
         mean_epoch_loss = self.epoch_total_loss / self.epoch_steps_count
-        self.logger.experiment["train/epoch_loss"].append(mean_epoch_loss)
+        self.run["train/epoch_loss"].append(mean_epoch_loss)
         self._reset()
 
         sample = self.pipeline(**self.pipeline_kwargs)
         data = sample[0][0].cpu().numpy()
 
-        fig = plot_spectrogram(data)
-        file = self._to_file(fig)
+        fig = plot_mel_spectrogram_by_librosa(data)
 
-        self.logger.experiment["train/sample"].append(file)
-
-    def _to_file(self, fig: Figure):
-        bytes = fig.to_image("png")
-        buf = io.BytesIO(bytes)
-        img = Image.open(buf)
-
-        file = File.as_image(img)
-
-        img.close()
-
-        return file
+        self.run["train/sample"].append(fig)
 
     def _reset(self):
         self.epoch_total_loss = 0.0

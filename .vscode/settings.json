@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "colorbar",
         "DDIM",
         "DDPM",
         "downsample",
@@ -12,6 +13,7 @@
         "ndarray",
         "randn",
         "Resampler",
+        "specshow",
         "timestep",
         "timesteps",
         "torchaudio",

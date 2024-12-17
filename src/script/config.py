@@ -12,8 +12,10 @@ class TrainConfig:
     epochs: int = 1
     lr: float = 1e-4
 
+    # debug
     fast_dev_run: bool = False
 
+    # instantiate
     trainer_logger: dict | None = None
     model_logger: dict | None = None
     callbacks: list[dict] = field(default_factory=list)

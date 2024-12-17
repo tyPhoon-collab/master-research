@@ -44,6 +44,6 @@ def train_unet(cfg: TrainConfig):
     )
     trainer.fit(model, datamodule=datamodule)
 
-    if trainer_logger is NeptuneLogger:
+    if isinstance(trainer_logger, NeptuneLogger):
         trainer_logger.log_model_summary(model=model, max_depth=-1)
         trainer_logger.log_hyperparams(asdict(cfg))
