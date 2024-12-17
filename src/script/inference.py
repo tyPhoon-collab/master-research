@@ -5,11 +5,14 @@ import torch
 from src.module.model.unet import UNet
 from src.pipeline import UNetDiffusionPipeline
 from src.script.config import InferConfig
+from src.types_ import TimestepCallbackType
 
 
-# TODO: add genre parameter
-# TODO: think about timestep_callback
-def inference_unet(cfg: InferConfig) -> torch.Tensor:
+# TODO: add another parameter
+def inference_unet(
+    cfg: InferConfig,
+    timestep_callback: TimestepCallbackType | None = None,
+) -> torch.Tensor:
     if cfg.checkpoint_path is None:
         raise ValueError("checkpoint_path must be specified")
 
@@ -21,4 +24,6 @@ def inference_unet(cfg: InferConfig) -> torch.Tensor:
     pipeline = UNetDiffusionPipeline(model)
 
     # TODO: add pipeline parameters
-    return pipeline()
+    return pipeline(
+        timestep_callback=timestep_callback,
+    )

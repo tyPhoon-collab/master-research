@@ -22,14 +22,14 @@ class UNetLogger(ABC):
         self.model = model
 
     @abstractmethod
-    def training_step(self, loss): ...
+    def training_step(self, loss, batch_idx: int): ...
 
     @abstractmethod
     def on_train_epoch_end(self) -> None: ...
 
 
 class DefaultUNetLogger(UNetLogger):
-    def training_step(self, loss):
+    def training_step(self, loss, batch_idx: int):
         self.log("train_loss", loss, prog_bar=True)
 
     def on_train_epoch_end(self) -> None:
@@ -39,9 +39,7 @@ class DefaultUNetLogger(UNetLogger):
 class NeptuneUNetLogger(DefaultUNetLogger):
     def __init__(self, **pipeline_kwargs):
         super().__init__()
-
-        self.epoch_total_loss = 0
-        self.epoch_step_count = 0
+        self._reset()
 
         self.pipeline_kwargs = pipeline_kwargs
 
@@ -50,20 +48,18 @@ class NeptuneUNetLogger(DefaultUNetLogger):
 
         self.pipeline = UNetDiffusionPipeline(self.model, self.model.scheduler)
 
-    def training_step(self, loss):
-        super().training_step(loss)
+    def training_step(self, loss, batch_idx: int):
+        super().training_step(loss, batch_idx)
 
-        self.logger.experiment["train/loss"].append(loss)
+        self.logger.experiment[f"train/batch_{batch_idx}/loss"].append(loss)
 
         self.epoch_total_loss += loss.item()
-        self.epoch_step_count += 1
+        self.epoch_steps_count += 1
 
     def on_train_epoch_end(self) -> None:
-        mean_epoch_loss = self.epoch_total_loss / self.epoch_step_count
+        mean_epoch_loss = self.epoch_total_loss / self.epoch_steps_count
         self.logger.experiment["train/epoch_loss"].append(mean_epoch_loss)
-
-        self.epoch_total_loss = 0
-        self.epoch_step_count = 0
+        self._reset()
 
         sample = self.pipeline(**self.pipeline_kwargs)
         data = sample[0][0].cpu().numpy()
@@ -83,3 +79,7 @@ class NeptuneUNetLogger(DefaultUNetLogger):
         img.close()
 
         return file
+
+    def _reset(self):
+        self.epoch_total_loss = 0.0
+        self.epoch_steps_count = 0

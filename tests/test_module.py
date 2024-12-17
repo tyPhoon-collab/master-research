@@ -50,3 +50,26 @@ def test_datamodule():
     assert mel.size(2) == 160  # height is mel bins
     assert mel.size(3) == 2560  # width is time steps. trimmed to 2560
     assert isinstance(genres, torch.Tensor)
+
+
+def test_unet():
+    import torch
+
+    from src.module.model.unet import UNet
+    from src.pipeline import UNetDiffusionPipeline
+    from src.utils import auto_device
+
+    device = auto_device()
+
+    model = UNet().to(device)
+
+    pipeline = UNetDiffusionPipeline(model)
+
+    sample = pipeline(timesteps=1)
+
+    assert isinstance(sample, torch.Tensor)
+    assert sample.ndim == 4  # batch, channel, height, width
+    assert sample.size(1) == 1  # channel is mono
+    assert sample.size(2) == 160  # height is mel bins
+    assert sample.size(3) == 2560  # width is time steps. trimmed to 2560
+    assert sample.isnan().sum() == 0

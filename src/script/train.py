@@ -25,6 +25,11 @@ def train_unet(cfg: TrainConfig):
     model_logger = (
         instantiate(cfg.model_logger) if cfg.model_logger is not None else None
     )
+    callbacks = [instantiate(callback) for callback in cfg.callbacks]
+
+    print("trainer_logger:", trainer_logger)
+    print("model_logger:", model_logger)
+    print("callbacks:", callbacks)
 
     model = UNet(
         logger=model_logger,
@@ -35,6 +40,7 @@ def train_unet(cfg: TrainConfig):
         max_epochs=cfg.epochs,
         fast_dev_run=cfg.fast_dev_run,
         logger=trainer_logger,
+        callbacks=callbacks,
     )
     trainer.fit(model, datamodule=datamodule)
 

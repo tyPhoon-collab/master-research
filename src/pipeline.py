@@ -1,10 +1,9 @@
-from collections.abc import Callable
 from typing import Any
 
 import torch
 from tqdm import tqdm
 
-TimestepCallbackType = Callable[[int, torch.Tensor], None]
+from src.types_ import TimestepCallbackType
 
 
 def _noop_timestep_callback(timestep: int, sample: torch.Tensor) -> None:

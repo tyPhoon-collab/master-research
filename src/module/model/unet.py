@@ -6,7 +6,7 @@ from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from torch.optim import Adam
 
 from src.module.data.dataset import NUM_GENRES, PADDING_INDEX
-from src.module.logger import DefaultUNetLogger, UNetLogger
+from src.module.logger.unet import DefaultUNetLogger, UNetLogger
 
 
 class UNet(L.LightningModule):
@@ -64,9 +64,10 @@ class UNet(L.LightningModule):
         # forward
         residual = self(noisy_mel, timesteps, genres).sample
 
+        # ノイズとの損失を計算。UNetはノイズを出力する
         loss = F.mse_loss(residual, noise)
 
-        self._logger.training_step(loss)
+        self._logger.training_step(loss, batch_idx)
 
         return loss
 
