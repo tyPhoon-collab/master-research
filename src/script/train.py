@@ -1,13 +1,16 @@
-from dataclasses import asdict
-
-from hydra.utils import instantiate
-from pytorch_lightning.loggers import NeptuneLogger
+from logging import getLogger
 
 from src.script.config import TrainConfig
 
+logger = getLogger(__name__)
+
 
 def train_unet(cfg: TrainConfig):
+    from dataclasses import asdict
+
     import lightning as L
+    from hydra.utils import instantiate
+    from lightning.pytorch.loggers import NeptuneLogger
 
     from src.module.data.datamodule import FMAMelSpectrogramDataModule
     from src.module.model.unet import UNet
@@ -25,11 +28,13 @@ def train_unet(cfg: TrainConfig):
     model_logger = (
         instantiate(cfg.model_logger) if cfg.model_logger is not None else None
     )
-    callbacks = [instantiate(callback) for callback in cfg.callbacks]
+    callbacks = (
+        [instantiate(callback) for callback in cfg.callbacks] if cfg.callbacks else None
+    )
 
-    print("trainer_logger:", trainer_logger)
-    print("model_logger:", model_logger)
-    print("callbacks:", callbacks)
+    logger.info(f"Trainer logger: {trainer_logger}")
+    logger.info(f"Model logger: {model_logger}")
+    logger.info(f"Callbacks: {callbacks}")
 
     model = UNet(
         logger=model_logger,

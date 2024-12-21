@@ -1,9 +1,0 @@
-metadata_dir: "E:/Dataset/FMA/fma_metadata"
-audio_dir: "E:/Dataset/FMA/fma_small"
-
-sr: 22050
-batch_size: 1
-epochs: 1
-lr: 0.001
-
-fast_dev_run: true

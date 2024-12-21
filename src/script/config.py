@@ -18,7 +18,7 @@ class TrainConfig:
     # instantiate
     trainer_logger: dict | None = None
     model_logger: dict | None = None
-    callbacks: list[dict] = field(default_factory=list)
+    callbacks: list[dict] | None = field(default_factory=list)
 
 
 @dataclass(frozen=True)
