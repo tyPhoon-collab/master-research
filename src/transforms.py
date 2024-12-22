@@ -1,4 +1,7 @@
+from typing import Literal
+
 import torch
+import torchaudio.functional as F
 
 
 class TrimOrPad(torch.nn.Module):
@@ -37,3 +40,25 @@ class NormalizeMinusOneToOne(torch.nn.Module):
         min = waveform.min()
         max = waveform.max()
         return (waveform - min) / (max - min) * 2 - 1
+
+
+class Lambda(torch.nn.Module):
+    def __init__(self, func):
+        super().__init__()
+        self.func = func
+
+    def forward(self, x):
+        return self.func(x)
+
+
+class DBToAmplitude(torch.nn.Module):
+    def __init__(self, ttype: Literal["power", "magnitude"] = "power") -> None:
+        super().__init__()
+        self.ttype = ttype
+
+    def forward(self, db: torch.Tensor) -> torch.Tensor:
+        return F.DB_to_amplitude(
+            db,
+            ref=1.0,
+            power=1 if self.ttype == "power" else 0.5,
+        )

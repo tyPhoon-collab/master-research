@@ -1,12 +1,18 @@
 from typing import Any
 
 import torch
-from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
-from torchvision.transforms import Compose
+from torchaudio.transforms import (
+    AmplitudeToDB,
+    GriffinLim,
+    InverseMelScale,
+    MelSpectrogram,
+)
 from tqdm import tqdm
 
 from src.script.config import MelConfig
 from src.transforms import (
+    DBToAmplitude,
+    Lambda,
     NormalizeMinusOneToOne,
     ToMono,
     TrimOrPad,
@@ -66,29 +72,54 @@ class UNetDiffusionPipeline:
                 self.model.train()
 
 
-class MelSpectrogramPipeline:
+class MelSpectrogramPipeline(torch.nn.Module):
     def __init__(self, config: MelConfig | None = None):
+        super().__init__()
+
         c = config or MelConfig()
-        self.transform = Compose(
-            [
-                ToMono(),
-                TrimOrPad(target_length=c.sample_rate * 30),
-                MelSpectrogram(
-                    sample_rate=c.sample_rate,
-                    n_fft=c.n_fft,
-                    win_length=c.win_length,
-                    hop_length=c.hop_length,
-                    n_mels=c.n_mels,
-                    power=2.0,
-                ),
-                AmplitudeToDB(
-                    stype="power",
-                    top_db=80,
-                ),
-                lambda mel: mel[..., :2560],
-                NormalizeMinusOneToOne(),
-            ]
+        self.transform = torch.nn.Sequential(
+            ToMono(),
+            TrimOrPad(target_length=c.sample_rate * 30),
+            MelSpectrogram(
+                sample_rate=c.sample_rate,
+                n_fft=c.n_fft,
+                win_length=c.win_length,
+                hop_length=c.hop_length,
+                n_mels=c.n_mels,
+                power=2.0,
+            ),
+            AmplitudeToDB(
+                stype="power",
+                top_db=c.top_db,
+            ),
+            Lambda(lambda mel: mel[..., :2560]),
+            NormalizeMinusOneToOne(),
         )
 
-    def __call__(self, waveform: torch.Tensor) -> torch.Tensor:
+    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
         return self.transform(waveform)
+
+
+class InverseMelSpectrogramPipeline(torch.nn.Module):
+    def __init__(self, config: MelConfig | None = None):
+        super().__init__()
+
+        c = config or MelConfig()
+        self.transform = torch.nn.Sequential(
+            Lambda(lambda mel: mel / 2 * 80),
+            DBToAmplitude(),
+            InverseMelScale(
+                n_stft=c.n_stft,
+                n_mels=c.n_mels,
+                sample_rate=c.sample_rate,
+            ),
+            GriffinLim(
+                n_fft=c.n_fft,
+                win_length=c.win_length,
+                hop_length=c.hop_length,
+                power=2.0,
+            ),
+        )
+
+    def forward(self, mel: torch.Tensor) -> torch.Tensor:
+        return self.transform(mel)

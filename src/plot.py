@@ -1,7 +1,7 @@
 def plot_spectrogram(data):
     import plotly.express as px
 
-    assert data.ndim == 2, "data must be 2D array"
+    assert data.ndim == 2, "data must be 2D array. data.ndim: {}".format(data.ndim)
 
     fig = px.imshow(data, color_continuous_scale="RdBu_r", origin="lower")
     return fig
@@ -10,7 +10,7 @@ def plot_spectrogram(data):
 def plot_waveform(data):
     import plotly.express as px
 
-    assert data.ndim == 1, "data must be 1D array"
+    assert data.ndim == 1, "data must be 1D array. data.ndim: {}".format(data.ndim)
 
     fig = px.line(data)
     return fig

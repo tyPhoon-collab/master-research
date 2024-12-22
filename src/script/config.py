@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from functools import cached_property
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,11 @@ class MelConfig:
     win_length: int = 2048
     hop_length: int = 256
     n_mels: int = 160
+    top_db: int = 80
+
+    @cached_property
+    def n_stft(self):
+        return self.n_fft // 2 + 1
 
 
 class Mode(Enum):
