@@ -26,6 +26,15 @@ class InferConfig:
     checkpoint_path: str | None = None
 
 
+@dataclass(frozen=True)
+class MelConfig:
+    sample_rate: int = 22050
+    n_fft: int = 2048
+    win_length: int = 2048
+    hop_length: int = 256
+    n_mels: int = 160
+
+
 class Mode(Enum):
     train_unet = auto()
     infer_unet = auto()
@@ -37,3 +46,4 @@ class Config:
 
     train: TrainConfig = field(default_factory=TrainConfig)
     infer: InferConfig = field(default_factory=InferConfig)
+    mel: MelConfig = field(default_factory=MelConfig)

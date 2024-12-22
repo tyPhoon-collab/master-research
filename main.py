@@ -13,7 +13,7 @@ def main(cfg: Config):
         case "train_unet":
             from src.script.train import train_unet
 
-            train_unet(cfg.train)
+            train_unet(cfg)
         case "infer_unet":
             from src.script.inference import inference_unet
 

@@ -1,8 +1,16 @@
 from typing import Any
 
 import torch
+from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
+from torchvision.transforms import Compose
 from tqdm import tqdm
 
+from src.script.config import MelConfig
+from src.transforms import (
+    NormalizeMinusOneToOne,
+    ToMono,
+    TrimOrPad,
+)
 from src.types_ import TimestepCallbackType
 
 
@@ -56,3 +64,31 @@ class UNetDiffusionPipeline:
         finally:
             if training:
                 self.model.train()
+
+
+class MelSpectrogramPipeline:
+    def __init__(self, config: MelConfig | None = None):
+        c = config or MelConfig()
+        self.transform = Compose(
+            [
+                ToMono(),
+                TrimOrPad(target_length=c.sample_rate * 30),
+                MelSpectrogram(
+                    sample_rate=c.sample_rate,
+                    n_fft=c.n_fft,
+                    win_length=c.win_length,
+                    hop_length=c.hop_length,
+                    n_mels=c.n_mels,
+                    power=2.0,
+                ),
+                AmplitudeToDB(
+                    stype="power",
+                    top_db=80,
+                ),
+                lambda mel: mel[..., :2560],
+                NormalizeMinusOneToOne(),
+            ]
+        )
+
+    def __call__(self, waveform: torch.Tensor) -> torch.Tensor:
+        return self.transform(waveform)

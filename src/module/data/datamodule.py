@@ -1,10 +1,9 @@
 import lightning as L
 from torch.utils.data import DataLoader, random_split
-from torchaudio.transforms import AmplitudeToDB, MelSpectrogram
-from torchvision.transforms import Compose
 
 from src.module.data.dataset import FMADataset, collate_fn
-from src.transforms import NormalizeMinusOneToOne, ToMono, TrimOrPad
+from src.pipeline import MelSpectrogramPipeline
+from src.script.config import MelConfig
 
 
 class FMAMelSpectrogramDataModule(L.LightningDataModule):
@@ -13,32 +12,16 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
         *,
         metadata_dir: str,
         audio_dir: str,
-        sample_rate: int,
+        mel_config: MelConfig,
         batch_size: int,
         val_split: float = 0.2,
     ):
         super().__init__()
         self.metadata_dir = metadata_dir
         self.audio_dir = audio_dir
-        self.sample_rate = sample_rate
+        self.mel_config = mel_config
         self.batch_size = batch_size
-        self.transform = Compose(
-            [
-                ToMono(),
-                TrimOrPad(target_length=sample_rate * 30),
-                MelSpectrogram(
-                    sample_rate=sample_rate,
-                    n_fft=2048,
-                    win_length=2048,
-                    hop_length=256,
-                    n_mels=160,
-                    power=2.0,
-                ),
-                AmplitudeToDB(),
-                lambda mel: mel[..., :2560],
-                NormalizeMinusOneToOne(),
-            ]
-        )
+        self.transform = MelSpectrogramPipeline()
         self.val_split = val_split
 
     def setup(self, stage: str):
@@ -48,7 +31,7 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
         dataset = FMADataset(
             metadata_dir=self.metadata_dir,
             audio_dir=self.audio_dir,
-            sample_rate=self.sample_rate,
+            sample_rate=self.mel_config.sample_rate,
             transform=self.transform,
         )
 

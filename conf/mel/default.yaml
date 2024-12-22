@@ -1,0 +1,5 @@
+sample_rate: 22050
+n_fft: 2048
+win_length: 2048
+hop_length: 256
+n_mels: 160
