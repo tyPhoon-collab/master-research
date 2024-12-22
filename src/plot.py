@@ -1,12 +1,23 @@
 def plot_spectrogram(data):
     import plotly.express as px
 
-    fig = px.imshow(data, color_continuous_scale="RdBu_r", origin="lower")
+    assert data.ndim == 2, "data must be 2D array"
 
+    fig = px.imshow(data, color_continuous_scale="RdBu_r", origin="lower")
     return fig
 
 
-# TODO: できれば無い方が良い
+def plot_waveform(data):
+    import plotly.express as px
+
+    assert data.ndim == 1, "data must be 1D array"
+
+    fig = px.line(data)
+    return fig
+
+
+# TODO: consider deleting this function
+# neptuneとの統合の簡易化のためにあるが、plotlyで代用できるのであれば削除する
 def plot_mel_spectrogram_by_librosa(data):
     import librosa.display
     import matplotlib.pyplot as plt
