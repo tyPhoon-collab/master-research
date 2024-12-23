@@ -13,6 +13,8 @@ class TrainConfig:
     epochs: int = 1
     lr: float = 1e-4
 
+    profiler: str | None = None
+
     # debug
     fast_dev_run: bool = False
 

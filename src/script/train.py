@@ -45,6 +45,7 @@ def train_unet(c: Config):
         fast_dev_run=ct.fast_dev_run,
         logger=trainer_logger,
         callbacks=callbacks,
+        profiler=ct.profiler,
     )
     trainer.fit(model, datamodule=datamodule)
 
