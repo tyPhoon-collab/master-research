@@ -21,7 +21,7 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
         self.audio_dir = audio_dir
         self.mel_config = mel_config
         self.batch_size = batch_size
-        self.transform = MelSpectrogramPipeline()
+        self.transform = MelSpectrogramPipeline(mel_config)
         self.val_split = val_split
 
     def setup(self, stage: str):

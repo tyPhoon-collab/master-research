@@ -17,7 +17,7 @@ from src.transforms import (
     ToMono,
     TrimOrPad,
 )
-from src.types_ import TimestepCallbackType
+from src.types_ import TimestepCallback
 
 
 def _noop_timestep_callback(timestep: int, sample: torch.Tensor) -> None:
@@ -32,13 +32,16 @@ class UNetDiffusionPipeline:
     @torch.inference_mode()
     def __call__(
         self,
+        n_mels: int,
+        length: int,
         genres: torch.Tensor | None = None,
         timesteps: int = 1000,
-        noise_shape: tuple = (1, 1, 160, 2560),
-        timestep_callback: TimestepCallbackType | None = None,
+        timestep_callback: TimestepCallback | None = None,
         show_progress: bool = True,
     ) -> torch.Tensor:
         training = self.model.training
+
+        noise_shape = (1, 1, n_mels, length)
 
         try:
             self.model.eval()
@@ -77,10 +80,11 @@ class UNetDiffusionPipeline:
 
 
 class MelSpectrogramPipeline(torch.nn.Module):
-    def __init__(self, config: MelConfig | None = None):
+    def __init__(self, config: MelConfig):
         super().__init__()
 
-        c = config or MelConfig()
+        c = config
+
         self.transform = torch.nn.Sequential(
             ToMono(),
             # TrimOrPad(target_length=c.sample_rate * (30 // c.num_segments)),
@@ -105,10 +109,11 @@ class MelSpectrogramPipeline(torch.nn.Module):
 
 
 class InverseMelSpectrogramPipeline(torch.nn.Module):
-    def __init__(self, config: MelConfig | None = None):
+    def __init__(self, config: MelConfig):
         super().__init__()
 
-        c = config or MelConfig()
+        c = config
+
         self.transform = torch.nn.Sequential(
             Lambda(lambda mel: mel / 2 * c.top_db),
             DBToAmplitude(),
