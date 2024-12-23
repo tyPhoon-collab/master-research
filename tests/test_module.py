@@ -27,11 +27,14 @@ def test_datamodule():
     import torch
 
     from src.module.data.datamodule import FMAMelSpectrogramDataModule
+    from src.script.config import MelConfig
+
+    c = MelConfig()
 
     datamodule = FMAMelSpectrogramDataModule(
         metadata_dir=metadata_dir,
         audio_dir=audio_dir,
-        sample_rate=sample_rate,
+        mel_config=c,
         batch_size=16,
     )
 
@@ -46,9 +49,10 @@ def test_datamodule():
     mel, genres = next(iter(train_dataloader))
 
     assert mel.ndim == 4  # batch, channel, height, width
+    assert mel.size(0) == 16  # batch size
     assert mel.size(1) == 1  # channel is mono
-    assert mel.size(2) == 160  # height is mel bins
-    assert mel.size(3) == 2560  # width is time steps. trimmed to 2560
+    assert mel.size(2) == c.n_mels  # height is mel bins
+    assert mel.size(3) == c.fixed_length  # width is time steps. trimmed value
     assert isinstance(genres, torch.Tensor)
 
 

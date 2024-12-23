@@ -33,8 +33,11 @@ class MelConfig:
     n_fft: int = 2048
     win_length: int = 2048
     hop_length: int = 256
+    # sample_rate / hop_length * 30 / num_segments -> 16 * n -> 864 (n = 54)
+    fixed_length: int = 864
     n_mels: int = 160
     top_db: int = 80
+    num_segments: int = 3
 
     @cached_property
     def n_stft(self):

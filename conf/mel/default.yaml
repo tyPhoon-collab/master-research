@@ -1,6 +1,8 @@
 sample_rate: 22050
 n_fft: 2048
 win_length: 2048
-hop_length: 256
-n_mels: 160
+hop_length: 512
+fixed_length: 432
+n_mels: 128
 top_db: 80
+num_segments: 3

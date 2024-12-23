@@ -32,6 +32,7 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
             metadata_dir=self.metadata_dir,
             audio_dir=self.audio_dir,
             sample_rate=self.mel_config.sample_rate,
+            num_segments=self.mel_config.num_segments,
             transform=self.transform,
         )
 

@@ -56,7 +56,11 @@ class UNetDiffusionPipeline:
 
             callback = timestep_callback or _noop_timestep_callback
 
-            tqdm_timesteps = tqdm(scheduler.timesteps, disable=not show_progress)
+            tqdm_timesteps = tqdm(
+                scheduler.timesteps,
+                desc="Generating",
+                disable=not show_progress,
+            )
 
             for t in tqdm_timesteps:
                 noise_pred = self.model(sample, t, genres).sample
@@ -79,7 +83,7 @@ class MelSpectrogramPipeline(torch.nn.Module):
         c = config or MelConfig()
         self.transform = torch.nn.Sequential(
             ToMono(),
-            TrimOrPad(target_length=c.sample_rate * 30),
+            # TrimOrPad(target_length=c.sample_rate * (30 // c.num_segments)),
             MelSpectrogram(
                 sample_rate=c.sample_rate,
                 n_fft=c.n_fft,
@@ -92,7 +96,7 @@ class MelSpectrogramPipeline(torch.nn.Module):
                 stype="power",
                 top_db=c.top_db,
             ),
-            Lambda(lambda mel: mel[..., :2560]),
+            TrimOrPad(target_length=c.fixed_length),
             NormalizeMinusOneToOne(),
         )
 
@@ -106,7 +110,7 @@ class InverseMelSpectrogramPipeline(torch.nn.Module):
 
         c = config or MelConfig()
         self.transform = torch.nn.Sequential(
-            Lambda(lambda mel: mel / 2 * 80),
+            Lambda(lambda mel: mel / 2 * c.top_db),
             DBToAmplitude(),
             InverseMelScale(
                 n_stft=c.n_stft,
