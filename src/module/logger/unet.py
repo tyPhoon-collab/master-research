@@ -5,9 +5,10 @@ from neptune import Run
 
 from src.pipeline import UNetDiffusionPipeline
 from src.plot import plot_mel_spectrogram_by_librosa
+from src.script.config import Config
 
 
-class UNetLogger(ABC):
+class ModelLogger(ABC):
     @property
     def log(self):
         return self.model.log
@@ -19,6 +20,9 @@ class UNetLogger(ABC):
     def set_model(self, model):
         self.model: L.LightningModule = model
 
+    def set_config(self, config: Config):
+        self.config = config
+
     @abstractmethod
     def training_step(self, loss, batch_idx: int): ...
 
@@ -26,7 +30,7 @@ class UNetLogger(ABC):
     def on_train_epoch_end(self) -> None: ...
 
 
-class DefaultUNetLogger(UNetLogger):
+class SimpleModelLogger(ModelLogger):
     def training_step(self, loss, batch_idx: int):
         self.log("train_loss", loss, prog_bar=True)
 
@@ -34,12 +38,12 @@ class DefaultUNetLogger(UNetLogger):
         pass
 
 
-class NeptuneUNetLogger(DefaultUNetLogger):
-    def __init__(self, **pipeline_kwargs):
+class NeptuneUNetLogger(SimpleModelLogger):
+    def __init__(self, timesteps: int = 1000):
         super().__init__()
         self._reset()
 
-        self.pipeline_kwargs = pipeline_kwargs
+        self.timesteps = timesteps
 
     @property
     def run(self) -> Run:
@@ -63,7 +67,11 @@ class NeptuneUNetLogger(DefaultUNetLogger):
         self.run["train/epoch_loss"].append(mean_epoch_loss)
         self._reset()
 
-        sample = self.pipeline(**self.pipeline_kwargs)
+        sample = self.pipeline(
+            n_mels=self.config.mel.n_mels,
+            length=self.config.mel.fixed_length,
+            timesteps=self.timesteps,
+        )
         data = sample[0][0].cpu().numpy()
 
         fig = plot_mel_spectrogram_by_librosa(data)

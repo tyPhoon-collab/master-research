@@ -10,11 +10,11 @@ cs.store(name="base_config", node=Config)
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: Config):
     match cfg.mode:
-        case Mode.train_unet:
+        case Mode.train_unet.name:
             from src.script.train import train_unet
 
             train_unet(cfg)
-        case Mode.infer_unet:
+        case Mode.infer_unet.name:
             from src.script.inference import inference_unet
 
             inference_unet(cfg)
