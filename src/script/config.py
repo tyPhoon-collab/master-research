@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from functools import cached_property
 
 
 @dataclass(frozen=True)
@@ -21,12 +20,13 @@ class TrainConfig:
     # instantiate
     trainer_logger: dict | None = None
     model_logger: dict | None = None
-    callbacks: list[dict] | None = field(default_factory=list)
+    callbacks: list[dict] | None = None
 
 
 @dataclass(frozen=True)
 class InferConfig:
     checkpoint_path: str | None = None
+    callbacks: list[dict] | None = None
 
 
 @dataclass(frozen=True)
@@ -41,14 +41,12 @@ class MelConfig:
     top_db: int = 80
     num_segments: int = 3
 
-    @cached_property
-    def n_stft(self):
-        return self.n_fft // 2 + 1
-
 
 class Mode(Enum):
     train_unet = auto()
     infer_unet = auto()
+    infer = auto()
+    app = auto()
 
 
 @dataclass(frozen=True)

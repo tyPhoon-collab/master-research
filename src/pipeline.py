@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Any
 
 import torch
@@ -10,6 +11,7 @@ from torchaudio.transforms import (
 from tqdm import tqdm
 
 from src.script.config import MelConfig
+from src.script.inference_callbacks import ComposeInferenceCallback, InferenceCallback
 from src.transforms import (
     DBToAmplitude,
     Lambda,
@@ -17,17 +19,18 @@ from src.transforms import (
     ToMono,
     TrimOrPad,
 )
-from src.types_ import TimestepCallback
-
-
-def _noop_timestep_callback(timestep: int, sample: torch.Tensor) -> None:
-    pass
 
 
 class UNetDiffusionPipeline:
-    def __init__(self, model, scheduler: Any | None = None):
+    def __init__(
+        self,
+        model,
+        scheduler: Any | None = None,
+        post_pipeline: Callable[[torch.Tensor], torch.Tensor] | None = None,
+    ):
         self.model = model
         self.scheduler = scheduler
+        self.post_pipeline = post_pipeline
 
     @torch.inference_mode()
     def __call__(
@@ -36,15 +39,18 @@ class UNetDiffusionPipeline:
         length: int,
         genres: torch.Tensor | None = None,
         timesteps: int = 1000,
-        timestep_callback: TimestepCallback | None = None,
+        callbacks: list[InferenceCallback] | None = None,
         show_progress: bool = True,
     ) -> torch.Tensor:
         training = self.model.training
 
         noise_shape = (1, 1, n_mels, length)
+        callback = ComposeInferenceCallback(callbacks)
 
         try:
             self.model.eval()
+
+            callback.on_inference_start()
 
             device = self.model.device
 
@@ -57,8 +63,6 @@ class UNetDiffusionPipeline:
 
             sample = torch.randn(noise_shape, device=device)
 
-            callback = timestep_callback or _noop_timestep_callback
-
             tqdm_timesteps = tqdm(
                 scheduler.timesteps,
                 desc="Generating",
@@ -70,8 +74,10 @@ class UNetDiffusionPipeline:
                 int_t = int(t.item())
                 sample = scheduler.step(noise_pred, int_t, sample).prev_sample  # type: ignore
 
-                callback(int_t, sample.clone().cpu())
+                callback.on_timestep(int_t, sample)
 
+            sample = self.post_pipeline(sample) if self.post_pipeline else sample
+            callback.on_inference_end(sample)
             return sample
 
         finally:
@@ -118,7 +124,7 @@ class InverseMelSpectrogramPipeline(torch.nn.Module):
             Lambda(lambda mel: mel / 2 * c.top_db),
             DBToAmplitude(),
             InverseMelScale(
-                n_stft=c.n_stft,
+                n_stft=c.n_fft // 2 + 1,
                 n_mels=c.n_mels,
                 sample_rate=c.sample_rate,
             ),

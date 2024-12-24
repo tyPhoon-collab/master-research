@@ -18,6 +18,11 @@ def main(cfg: Config):
             from src.script.inference import inference_unet
 
             inference_unet(cfg)
+
+        case Mode.infer.name:
+            from src.script.inference import inference
+
+            inference(cfg)
         case _:
             raise ValueError(f"Invalid mode: {cfg.mode}")
 
