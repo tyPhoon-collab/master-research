@@ -27,7 +27,52 @@ def fma_audio_path(audio_dir: str, track_id: int) -> str:
 # fma_small/099/099134.mp3 => 0s
 # fma_small/108/108925.mp3 => 0s
 # fma_small/133/133297.mp3 => 0s
-_default_ignore_ids = [98565, 98567, 98569, 99134, 108925, 133297]
+# _default_ignore_ids = [98565, 98567, 98569, 99134, 108925, 133297]
+
+# fma_medium/001/001486.mp3 => 0s
+# fma_medium/005/005574.mp3 => 0s
+# fma_medium/065/065753.mp3 => 0s
+# fma_medium/080/080391.mp3 => 0s
+# fma_medium/098/098558.mp3 => 0s
+# fma_medium/098/098559.mp3 => 0s
+# fma_medium/098/098560.mp3 => 0s
+# fma_medium/098/098565.mp3 => 1.6s
+# fma_medium/098/098566.mp3 => 6.2s
+# fma_medium/098/098567.mp3 => 0.5s
+# fma_medium/098/098568.mp3 => 6.6s
+# fma_medium/098/098569.mp3 => 1.5s
+# fma_medium/098/098571.mp3 => 0s
+# fma_medium/099/099134.mp3 => 0s
+# fma_medium/105/105247.mp3 => 0s
+# fma_medium/108/108924.mp3 => 27.4s
+# fma_medium/108/108925.mp3 => 0s
+# fma_medium/126/126981.mp3 => 0s
+# fma_medium/127/127336.mp3 => 0s
+# fma_medium/133/133297.mp3 => 0s
+# fma_medium/143/143992.mp3 => 0s
+_default_ignore_ids = [
+    1486,
+    5574,
+    65753,
+    80391,
+    98558,
+    98559,
+    98560,
+    98565,
+    98566,
+    98567,
+    98568,
+    98569,
+    98571,
+    99134,
+    105247,
+    108924,
+    108925,
+    126981,
+    127336,
+    133297,
+    143992,
+]
 
 
 class FMAMetadata:
