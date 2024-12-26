@@ -10,10 +10,6 @@ from src.script.config import Config
 
 class ModelLogger(ABC):
     @property
-    def log(self):
-        return self.model.log
-
-    @property
     def logger(self):
         return self.model.logger
 
@@ -24,21 +20,15 @@ class ModelLogger(ABC):
         self.config = config
 
     @abstractmethod
-    def training_step(self, loss, batch_idx: int): ...
+    def on_batch_loss(self, loss):
+        pass
 
     @abstractmethod
-    def on_train_epoch_end(self) -> None: ...
-
-
-class SimpleModelLogger(ModelLogger):
-    def training_step(self, loss, batch_idx: int):
-        self.log("train_loss", loss, prog_bar=True)
-
-    def on_train_epoch_end(self) -> None:
+    def on_epoch_end(self):
         pass
 
 
-class NeptuneUNetLogger(SimpleModelLogger):
+class NeptuneUNetLogger(ModelLogger):
     def __init__(self, timesteps: int = 1000):
         super().__init__()
         self._reset()
@@ -54,15 +44,13 @@ class NeptuneUNetLogger(SimpleModelLogger):
 
         self.pipeline = UNetDiffusionPipeline(self.model, self.model.scheduler)
 
-    def training_step(self, loss, batch_idx: int):
-        super().training_step(loss, batch_idx)
-
+    def on_batch_loss(self, loss):
         self.run[f"train/batch_{self.model.current_epoch}/loss"].append(loss)
 
         self.epoch_total_loss += loss.item()
         self.epoch_steps_count += 1
 
-    def on_train_epoch_end(self) -> None:
+    def on_epoch_end(self) -> None:
         mean_epoch_loss = self.epoch_total_loss / self.epoch_steps_count
         self.run["train/epoch_loss"].append(mean_epoch_loss)
         self._reset()

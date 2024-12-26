@@ -11,6 +11,7 @@ class TrainConfig:
     batch_size: int = 2
     epochs: int = 1
     lr: float = 1e-4
+    criterion: dict | None = None
 
     profiler: str | None = None
 

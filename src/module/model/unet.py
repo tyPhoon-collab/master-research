@@ -1,16 +1,20 @@
 import lightning as L
 import torch
-import torch.nn.functional as F
 from diffusers.models.unets.unet_2d import UNet2DModel
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from torch.optim import Adam
 
 from src.module.data.metadata import NUM_GENRES, PADDING_INDEX
-from src.module.logger.unet import ModelLogger, SimpleModelLogger
+from src.module.model_logger import ModelLogger
 
 
 class UNet(L.LightningModule):
-    def __init__(self, lr: float = 1e-4, logger: ModelLogger | None = None):
+    def __init__(
+        self,
+        lr: float = 1e-4,
+        criterion: torch.nn.Module | None = None,
+        logger: ModelLogger | None = None,
+    ):
         super().__init__()
 
         num_class_embeds = NUM_GENRES
@@ -48,7 +52,9 @@ class UNet(L.LightningModule):
         self.scheduler = DDPMScheduler()
 
         self.lr = lr
-        self._logger = logger or SimpleModelLogger()
+        self.criterion = criterion or torch.nn.L1Loss()
+
+        self._logger = logger
 
     def training_step(self, batch, batch_idx):
         mel, genres = batch
@@ -63,19 +69,21 @@ class UNet(L.LightningModule):
         # forward
         residual = self(noisy_mel, timesteps, genres).sample
 
-        # ノイズとの損失を計算。UNetはノイズを出力する
-        loss = F.mse_loss(residual, noise)
+        # ノイズとの損失を計算。self.modelはノイズを出力する
+        loss = self.criterion(residual, noise)
 
-        self._logger.training_step(loss, batch_idx)
+        self.log("train_loss", loss, prog_bar=True)
+        if self._logger is not None:
+            self._logger.on_batch_loss(loss)
 
         return loss
 
     def on_train_epoch_end(self) -> None:
-        self._logger.on_train_epoch_end()
+        if self._logger is not None:
+            self._logger.on_epoch_end()
 
     def configure_optimizers(self):
         optimizer = Adam(self.parameters(), lr=self.lr)  # TODO: consider decay
-        # scheduler = ...  # TODO: add scheduler
         return optimizer
 
     def forward(self, x, timestep, genres: torch.Tensor):

@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from src.module.logger.unet import ModelLogger
+from src.module.model_logger import ModelLogger
 from src.script.config import Config
 
 logger = getLogger(__name__)
@@ -34,14 +34,13 @@ def train_unet(c: Config):
         [instantiate(callback) for callback in ct.callbacks] if ct.callbacks else None
     )
 
+    criterion = instantiate(ct.criterion) if ct.criterion is not None else None
+
     logger.info(f"Trainer logger: {trainer_logger}")
     logger.info(f"Model logger: {model_logger}")
     logger.info(f"Callbacks: {callbacks}")
 
-    model = UNet(
-        logger=model_logger,
-        lr=ct.lr,
-    )
+    model = UNet(logger=model_logger, lr=ct.lr, criterion=criterion)
 
     if model_logger is not None:
         model_logger.set_model(model)

@@ -5,6 +5,8 @@ batch_size: 1
 epochs: 1
 lr: 0.001
 profiler: null
+criterion:
+  _target_: torch.nn.L1Loss
 
 fast_dev_run: true
 
