@@ -2,9 +2,13 @@ import torch
 import torchaudio
 from torch.utils.data import Dataset
 
-from src.loader.audio_loader import AudioLoader, TorchAudioLoader
-from src.module.data.metadata import PADDING_INDEX, FMAMetadata, fma_audio_path
-from src.types_ import FMADatasetReturn, Transform
+from music_controlnet.loader.audio_loader import AudioLoader, TorchAudioLoader
+from music_controlnet.module.data.metadata import (
+    PADDING_INDEX,
+    FMAMetadata,
+    fma_audio_path,
+)
+from music_controlnet.types_ import FMADatasetReturn, Transform
 
 
 def collate_fn(batch: list[FMADatasetReturn]) -> FMADatasetReturn:

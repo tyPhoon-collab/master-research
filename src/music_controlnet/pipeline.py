@@ -10,9 +10,12 @@ from torchaudio.transforms import (
 )
 from tqdm import tqdm
 
-from src.script.config import MelConfig
-from src.script.inference_callbacks import ComposeInferenceCallback, InferenceCallback
-from src.transforms import (
+from music_controlnet.script.config import MelConfig
+from music_controlnet.script.inference_callbacks import (
+    ComposeInferenceCallback,
+    InferenceCallback,
+)
+from music_controlnet.transforms import (
     DBToAmplitude,
     Lambda,
     NormalizeMinusOneToOne,

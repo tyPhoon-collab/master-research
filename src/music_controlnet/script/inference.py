@@ -4,10 +4,13 @@ from collections.abc import Callable
 import torch
 from hydra.utils import instantiate
 
-from src.module.model.unet import UNet
-from src.pipeline import InverseMelSpectrogramPipeline, UNetDiffusionPipeline
-from src.script.config import Config
-from src.utils import auto_device
+from music_controlnet.module.model.unet import UNet
+from music_controlnet.pipeline import (
+    InverseMelSpectrogramPipeline,
+    UNetDiffusionPipeline,
+)
+from music_controlnet.script.config import Config
+from music_controlnet.utils import auto_device
 
 
 # TODO: add another parameter

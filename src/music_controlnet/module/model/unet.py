@@ -4,8 +4,8 @@ from diffusers.models.unets.unet_2d import UNet2DModel
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from torch.optim import Adam
 
-from src.module.data.metadata import NUM_GENRES, PADDING_INDEX
-from src.module.model_logger import ModelLogger
+from music_controlnet.module.data.metadata import NUM_GENRES, PADDING_INDEX
+from music_controlnet.module.model_logger import ModelLogger
 
 
 class UNet(L.LightningModule):

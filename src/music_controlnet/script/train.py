@@ -1,7 +1,7 @@
 from logging import getLogger
 
-from src.module.model_logger import ModelLogger
-from src.script.config import Config
+from music_controlnet.module.model_logger import ModelLogger
+from music_controlnet.script.config import Config
 
 logger = getLogger(__name__)
 
@@ -11,8 +11,8 @@ def train_unet(c: Config):
     from hydra.utils import instantiate
     from lightning.pytorch.loggers import NeptuneLogger
 
-    from src.module.data.datamodule import FMAMelSpectrogramDataModule
-    from src.module.model.unet import UNet
+    from music_controlnet.module.data.datamodule import FMAMelSpectrogramDataModule
+    from music_controlnet.module.model.unet import UNet
 
     ct = c.train
     cm = c.mel

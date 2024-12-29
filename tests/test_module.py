@@ -6,7 +6,7 @@ sample_rate = 22050
 def test_dataset():
     import torch
 
-    from src.module.data.dataset import FMADataset
+    from music_controlnet.module.data.dataset import FMADataset
 
     dataset = FMADataset(
         metadata_dir=metadata_dir,
@@ -26,8 +26,8 @@ def test_dataset():
 def test_datamodule():
     import torch
 
-    from src.module.data.datamodule import FMAMelSpectrogramDataModule
-    from src.script.config import MelConfig
+    from music_controlnet.module.data.datamodule import FMAMelSpectrogramDataModule
+    from music_controlnet.script.config import MelConfig
 
     c = MelConfig()
 
@@ -59,9 +59,9 @@ def test_datamodule():
 def test_unet():
     import torch
 
-    from src.module.model.unet import UNet
-    from src.pipeline import UNetDiffusionPipeline
-    from src.utils import auto_device
+    from music_controlnet.module.model.unet import UNet
+    from music_controlnet.pipeline import UNetDiffusionPipeline
+    from music_controlnet.utils import auto_device
 
     device = auto_device()
 

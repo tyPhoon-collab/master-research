@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 import lightning as L
 from neptune import Run
 
-from src.pipeline import UNetDiffusionPipeline
-from src.plot import plot_mel_spectrogram_by_librosa
-from src.script.config import Config
+from music_controlnet.pipeline import UNetDiffusionPipeline
+from music_controlnet.plot import plot_mel_spectrogram_by_librosa
+from music_controlnet.script.config import Config
 
 
 class ModelLogger(ABC):

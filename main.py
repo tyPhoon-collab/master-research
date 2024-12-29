@@ -1,7 +1,7 @@
 import hydra
 from hydra.core.config_store import ConfigStore
 
-from src.script.config import Config, Mode
+from music_controlnet.script.config import Config, Mode
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=Config)
@@ -11,16 +11,16 @@ cs.store(name="base_config", node=Config)
 def main(cfg: Config):
     match cfg.mode:
         case Mode.train_unet.name:
-            from src.script.train import train_unet
+            from music_controlnet.script.train import train_unet
 
             train_unet(cfg)
         case Mode.infer_unet.name:
-            from src.script.inference import inference_unet
+            from music_controlnet.script.inference import inference_unet
 
             inference_unet(cfg)
 
         case Mode.infer.name:
-            from src.script.inference import inference
+            from music_controlnet.script.inference import inference
 
             inference(cfg)
         case _:

@@ -1,9 +1,9 @@
 import lightning as L
 from torch.utils.data import DataLoader, random_split
 
-from src.module.data.dataset import FMADataset, collate_fn
-from src.pipeline import MelSpectrogramPipeline
-from src.script.config import MelConfig
+from music_controlnet.module.data.dataset import FMADataset, collate_fn
+from music_controlnet.pipeline import MelSpectrogramPipeline
+from music_controlnet.script.config import MelConfig
 
 
 class FMAMelSpectrogramDataModule(L.LightningDataModule):

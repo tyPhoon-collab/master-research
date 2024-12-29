@@ -4,8 +4,8 @@ import os
 import polars as pl
 import torch
 
-from src.loader.csv_loader import load_multi_header_csv
-from src.types_ import Genres
+from music_controlnet.loader.csv_loader import load_multi_header_csv
+from music_controlnet.types_ import Genres
 
 PADDING_INDEX = 163
 NUM_GENRES = 163 + 1
