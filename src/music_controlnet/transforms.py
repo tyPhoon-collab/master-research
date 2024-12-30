@@ -32,6 +32,36 @@ class ToMono(torch.nn.Module):
         return waveform
 
 
+class Lambda(torch.nn.Module):
+    def __init__(self, func):
+        super().__init__()
+        self.func = func
+
+    def forward(self, x):
+        return self.func(x)
+
+
+class Normalize(torch.nn.Module):
+    def __init__(self, clip_val: float = 1e-5, C: float = 1.0):
+        super().__init__()
+        self.clip_val = clip_val
+        self.C = C
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Ref: bigvgan.meldataset.dynamic_range_compression_torch
+        return torch.log(torch.clamp(x, min=self.clip_val) * self.C)
+
+
+class Denormalize(torch.nn.Module):
+    def __init__(self, C: float = 1.0):
+        super().__init__()
+        self.C = C
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Ref: bigvgan.meldataset.dynamic_range_compression_torch
+        return torch.exp(x) / self.C
+
+
 class NormalizeMinusOneToOne(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -40,15 +70,6 @@ class NormalizeMinusOneToOne(torch.nn.Module):
         min = waveform.min()
         max = waveform.max()
         return (waveform - min) / (max - min) * 2 - 1
-
-
-class Lambda(torch.nn.Module):
-    def __init__(self, func):
-        super().__init__()
-        self.func = func
-
-    def forward(self, x):
-        return self.func(x)
 
 
 class DBToAmplitude(torch.nn.Module):

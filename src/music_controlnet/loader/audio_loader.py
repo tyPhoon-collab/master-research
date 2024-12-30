@@ -20,9 +20,9 @@ class TorchAudioLoader(AudioLoader):
 
         try:
             waveform, sr = torchaudio.load(audio_path)
+            return waveform, sr
         except RuntimeError:
             raise RuntimeError(f"Failed to load audio file: {audio_path}")
-        return waveform, sr
 
 
 class LibrosaAudioLoader(AudioLoader):
@@ -32,6 +32,6 @@ class LibrosaAudioLoader(AudioLoader):
 
         try:
             waveform, sr = librosa.load(audio_path, sr=None, mono=False)
+            return torch.tensor(waveform), int(sr)
         except RuntimeError:
             raise RuntimeError(f"Failed to load audio file: {audio_path}")
-        return torch.tensor(waveform), int(sr)
