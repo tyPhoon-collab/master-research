@@ -9,11 +9,11 @@ from torch.optim import Adam
 from tqdm import tqdm
 
 from music_controlnet.module.data.metadata import NUM_GENRES, PADDING_INDEX
-from music_controlnet.module.model_logger import ModelLogger
-from music_controlnet.script.inference_callbacks import (
+from music_controlnet.module.inference_callbacks import (
     ComposeInferenceCallback,
     InferenceCallback,
 )
+from music_controlnet.module.model_logger import ModelLogger
 
 
 class UNet(L.LightningModule):

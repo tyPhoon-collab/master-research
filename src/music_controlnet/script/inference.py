@@ -28,7 +28,7 @@ def inference_unet(
         [instantiate(callback) for callback in ci.callbacks] if ci.callbacks else None
     )
 
-    return model(
+    return model.generate(
         n_mels=cm.n_mels,
         length=cm.fixed_length,
         callbacks=callbacks,

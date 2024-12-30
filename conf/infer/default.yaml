@@ -1,5 +1,5 @@
 checkpoint_path: null
 callbacks:
-  - _target_: src.script.inference_callbacks.SaveOutputInferenceCallback
+  - _target_: music_controlnet.module.inference_callbacks.SaveOutputInferenceCallback
     save_dir: "output/"
     save_timesteps: [999, 499, 0]
