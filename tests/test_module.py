@@ -56,20 +56,39 @@ def test_datamodule():
     assert isinstance(genres, torch.Tensor)
 
 
-def test_unet():
+def test_unet_forward():
     import torch
 
     from music_controlnet.module.model.unet import UNet
-    from music_controlnet.pipeline import UNetDiffusionPipeline
     from music_controlnet.utils import auto_device
 
     device = auto_device()
-
     model = UNet().to(device)
 
-    pipeline = UNetDiffusionPipeline(model)
+    noise = model(
+        torch.randn(1, 1, 160, 2560, device=device),
+        torch.randint(0, 999, (1,), device=device),
+        torch.tensor([[21]], device=device),
+    ).sample
 
-    sample = pipeline(timesteps=1)
+    assert isinstance(noise, torch.Tensor)
+    assert noise.ndim == 4  # batch, channel, height, width
+    assert noise.size(1) == 1  # channel is mono
+    assert noise.size(2) == 160  # height is mel bins
+    assert noise.size(3) == 2560  # width is time steps. trimmed to 2560
+    assert noise.isnan().sum() == 0
+
+
+def test_unet_generate():
+    import torch
+
+    from music_controlnet.module.model.unet import UNet
+    from music_controlnet.utils import auto_device
+
+    device = auto_device()
+    model = UNet().to(device)
+
+    sample = model.generate(160, 2560, timesteps=1)
 
     assert isinstance(sample, torch.Tensor)
     assert sample.ndim == 4  # batch, channel, height, width

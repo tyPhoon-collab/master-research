@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 import lightning as L
 from neptune import Run
 
-from music_controlnet.pipeline import UNetDiffusionPipeline
 from music_controlnet.plot import plot_mel_spectrogram_by_librosa
 from music_controlnet.script.config import Config
 
@@ -42,8 +41,6 @@ class NeptuneUNetLogger(ModelLogger):
     def set_model(self, model: L.LightningModule):
         super().set_model(model)
 
-        self.pipeline = UNetDiffusionPipeline(self.model, self.model.scheduler)
-
     def on_batch_loss(self, loss):
         self.run[f"train/batch_{self.model.current_epoch}/loss"].append(loss)
 
@@ -55,7 +52,7 @@ class NeptuneUNetLogger(ModelLogger):
         self.run["train/epoch_loss"].append(mean_epoch_loss)
         self._reset()
 
-        sample = self.pipeline(
+        sample = self.model.generate(
             n_mels=self.config.mel.n_mels,
             length=self.config.mel.fixed_length,
             timesteps=self.timesteps,

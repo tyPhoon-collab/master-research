@@ -1,11 +1,19 @@
+from collections.abc import Callable
+from typing import Any
+
 import lightning as L
 import torch
 from diffusers.models.unets.unet_2d import UNet2DModel
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from torch.optim import Adam
+from tqdm import tqdm
 
 from music_controlnet.module.data.metadata import NUM_GENRES, PADDING_INDEX
 from music_controlnet.module.model_logger import ModelLogger
+from music_controlnet.script.inference_callbacks import (
+    ComposeInferenceCallback,
+    InferenceCallback,
+)
 
 
 class UNet(L.LightningModule):
@@ -88,3 +96,57 @@ class UNet(L.LightningModule):
 
     def forward(self, x, timestep, genres: torch.Tensor):
         return self.model(x, timestep, class_labels=genres)
+
+    @torch.inference_mode()
+    def generate(
+        self,
+        n_mels: int,
+        length: int,
+        genres: torch.Tensor | None = None,
+        timesteps: int = 1000,
+        callbacks: list[InferenceCallback] | None = None,
+        show_progress: bool = True,
+        scheduler: Any | None = None,
+        post_pipeline: Callable[[torch.Tensor], torch.Tensor] | None = None,
+    ) -> torch.Tensor:
+        training = self.model.training
+        noise_shape = (1, 1, n_mels, length)
+        callback = ComposeInferenceCallback(callbacks)
+        scheduler_ = scheduler or self.scheduler
+
+        try:
+            self.model.eval()
+
+            callback.on_inference_start()
+
+            device = self.model.device
+
+            # genresが指定されていない場合のデフォルト設定
+            # Hip-Hop
+            genres = genres or torch.tensor([[21]], device=device)
+
+            scheduler = self.scheduler or self.model.scheduler
+            scheduler_.set_timesteps(timesteps)
+
+            sample = torch.randn(noise_shape, device=device)
+
+            tqdm_timesteps = tqdm(
+                scheduler_.timesteps,
+                desc="Generating",
+                disable=not show_progress,
+            )
+
+            for t in tqdm_timesteps:
+                noise_pred = self.model(sample, t, genres).sample
+                int_t = int(t.item())
+                sample = scheduler.step(noise_pred, int_t, sample).prev_sample  # type: ignore
+
+                callback.on_timestep(int_t, sample)
+
+            sample = post_pipeline(sample) if post_pipeline else sample
+            callback.on_inference_end(sample)
+            return sample
+
+        finally:
+            if training:
+                self.model.train()

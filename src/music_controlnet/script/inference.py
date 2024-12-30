@@ -7,7 +7,6 @@ from hydra.utils import instantiate
 from music_controlnet.module.model.unet import UNet
 from music_controlnet.pipeline import (
     InverseMelSpectrogramPipeline,
-    UNetDiffusionPipeline,
 )
 from music_controlnet.script.config import Config
 from music_controlnet.utils import auto_device
@@ -25,16 +24,16 @@ def inference_unet(
 
     model = UNet.load_from_checkpoint(ckpt_path)
 
-    pipeline = UNetDiffusionPipeline(
-        model,
-        post_pipeline=post_pipeline,
-    )
     callbacks = (
         [instantiate(callback) for callback in ci.callbacks] if ci.callbacks else None
     )
 
-    # TODO: add pipeline parameters
-    return pipeline(n_mels=cm.n_mels, length=cm.fixed_length, callbacks=callbacks)
+    return model(
+        n_mels=cm.n_mels,
+        length=cm.fixed_length,
+        callbacks=callbacks,
+        post_pipeline=post_pipeline,
+    )
 
 
 def _check_ckpt_path(ci):
