@@ -1,5 +1,6 @@
 import torch
 from torchaudio.transforms import (
+    AmplitudeToDB,
     GriffinLim,
     InverseMelScale,
     MelSpectrogram,
@@ -7,8 +8,10 @@ from torchaudio.transforms import (
 
 from music_controlnet.script.config import MelConfig
 from music_controlnet.transforms import (
-    Denormalize,
-    Normalize,
+    Clamp,
+    DBToAmplitude,
+    Lambda,
+    Scale,
     ToMono,
     TrimOrPad,
 )
@@ -22,6 +25,7 @@ class MelSpectrogramPipeline(torch.nn.Module):
 
         self.transform = torch.nn.Sequential(
             ToMono(),
+            Clamp.one(),
             MelSpectrogram(
                 sample_rate=c.sample_rate,
                 n_fft=c.n_fft,
@@ -29,14 +33,14 @@ class MelSpectrogramPipeline(torch.nn.Module):
                 hop_length=c.hop_length,
                 n_mels=c.n_mels,
                 power=2.0,
+                normalized=True,
             ),
             TrimOrPad(target_length=c.fixed_length),
-            Normalize(),
-            # AmplitudeToDB(
-            #     stype="power",
-            #     top_db=c.top_db,
-            # ),
-            # NormalizeMinusOneToOne(),
+            AmplitudeToDB(
+                stype="power",
+                top_db=c.top_db,
+            ),
+            Scale.one(),
         )
 
     def forward(self, waveform: torch.Tensor) -> torch.Tensor:
@@ -50,9 +54,8 @@ class InverseMelSpectrogramPipeline(torch.nn.Module):
         c = config
 
         self.transform = torch.nn.Sequential(
-            # Lambda(lambda mel: mel / 2 * c.top_db),
-            # DBToAmplitude(),
-            Denormalize(),
+            Lambda(lambda mel: mel / 2 * c.top_db),
+            DBToAmplitude(),
             InverseMelScale(
                 n_stft=c.n_fft // 2 + 1,
                 n_mels=c.n_mels,

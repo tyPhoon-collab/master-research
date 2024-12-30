@@ -41,7 +41,7 @@ class Lambda(torch.nn.Module):
         return self.func(x)
 
 
-class Normalize(torch.nn.Module):
+class DynamicNormalize(torch.nn.Module):
     def __init__(self, clip_val: float = 1e-5, C: float = 1.0):
         super().__init__()
         self.clip_val = clip_val
@@ -52,7 +52,7 @@ class Normalize(torch.nn.Module):
         return torch.log(torch.clamp(x, min=self.clip_val) * self.C)
 
 
-class Denormalize(torch.nn.Module):
+class DynamicDenormalize(torch.nn.Module):
     def __init__(self, C: float = 1.0):
         super().__init__()
         self.C = C
@@ -62,14 +62,50 @@ class Denormalize(torch.nn.Module):
         return torch.exp(x) / self.C
 
 
-class NormalizeMinusOneToOne(torch.nn.Module):
-    def __init__(self):
+class Clamp(torch.nn.Module):
+    def __init__(self, min: float, max: float):
+        super().__init__()
+        self.min = min
+        self.max = max
+
+    @classmethod
+    def one(cls) -> "Clamp":
+        return cls(-1, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.clamp(x, min=self.min, max=self.max)
+
+
+class Scale(torch.nn.Module):
+    def __init__(
+        self,
+        to: tuple[float, float],
+        min: float | None = None,
+        max: float | None = None,
+    ):
         super().__init__()
 
-    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
-        min = waveform.min()
-        max = waveform.max()
-        return (waveform - min) / (max - min) * 2 - 1
+        self.min = min
+        self.max = max
+        self.to_ = to
+
+    @classmethod
+    def one(cls) -> "Scale":
+        return cls(to=(-1, 1))
+
+    @classmethod
+    def db_normalize(cls, top_db: float) -> "Scale":
+        return cls(min=-top_db, max=0, to=(-1, 1))
+
+    @classmethod
+    def db_denormalize(cls, top_db: float) -> "Scale":
+        return cls(min=-1, max=1, to=(-top_db, 0))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        t_min, t_max = self.to_
+        max = self.max or x.max()
+        min = self.min or x.min()
+        return (x - min) / (max - min) * (t_max - t_min) + t_min
 
 
 class DBToAmplitude(torch.nn.Module):
