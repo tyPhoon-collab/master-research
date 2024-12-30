@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import lightning as L
 from neptune import Run
 
-from music_controlnet.plot import plot_mel_spectrogram_by_librosa
+from music_controlnet.plot import plot_spectrogram, plotly_fig_to_pil_image
 from music_controlnet.script.config import Config
 
 
@@ -59,9 +59,12 @@ class NeptuneUNetLogger(ModelLogger):
         )
         data = sample[0][0].cpu().numpy()
 
-        fig = plot_mel_spectrogram_by_librosa(data)
+        fig = plot_spectrogram(data)
+        img = plotly_fig_to_pil_image(fig)
 
-        self.run["train/sample"].append(fig)
+        self.run["train/sample"].append(img)
+
+        img.close()
 
     def _reset(self):
         self.epoch_total_loss = 0.0

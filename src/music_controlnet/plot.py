@@ -1,4 +1,8 @@
-def plot_spectrogram(data):
+from PIL.ImageFile import ImageFile
+from plotly.graph_objs._figure import Figure
+
+
+def plot_spectrogram(data) -> Figure:
     import plotly.express as px
 
     assert data.ndim == 2, "data must be 2D array. data.ndim: {}".format(data.ndim)
@@ -7,7 +11,7 @@ def plot_spectrogram(data):
     return fig
 
 
-def plot_waveform(data):
+def plot_waveform(data) -> Figure:
     import plotly.express as px
 
     assert data.ndim == 1, "data must be 1D array. data.ndim: {}".format(data.ndim)
@@ -16,20 +20,11 @@ def plot_waveform(data):
     return fig
 
 
-# TODO: consider deleting this function
-# neptuneとの統合の簡易化のためにあるが、plotlyで代用できるのであれば削除する
-def plot_mel_spectrogram_by_librosa(data):
-    import librosa.display
-    import matplotlib.pyplot as plt
+def plotly_fig_to_pil_image(fig: Figure) -> ImageFile:
+    import io
 
-    fig, ax = plt.subplots()
-    img = librosa.display.specshow(
-        data,
-        x_axis="time",
-        y_axis="mel",
-        ax=ax,
-        sr=22050,
-        hop_length=256,
-    )
-    fig.colorbar(img, ax=ax, format="%+2.0f dB")
-    return fig
+    from PIL import Image
+
+    img_bytes = fig.to_image(format="png")
+    img = Image.open(io.BytesIO(img_bytes))
+    return img
