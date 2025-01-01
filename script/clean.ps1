@@ -23,5 +23,13 @@ function Delete-Folder {
 Delete-Folder ".neptune"
 Delete-Folder "lightning_logs"
 Delete-Folder "outputs"
+Delete-Folder "src/master.egg-info"
+
+$pycacheFolders = Get-ChildItem -Path "src" -Recurse -Directory -Filter "__pycache__"
+
+foreach ($folder in $pycacheFolders) {
+    Delete-Folder -FolderName $folder.FullName
+}
+
 
 Write-Host "Cleaning process completed!"
