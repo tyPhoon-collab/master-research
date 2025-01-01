@@ -1,21 +1,18 @@
 import os
-from collections.abc import Callable
 
 import torch
 from hydra.utils import instantiate
 
-from music_controlnet.module.model.unet import UNet
-from music_controlnet.pipeline import (
+from music_controlnet.module.unet import PostPipeline, UNet
+from tool.config import Config
+from tool.pipeline import (
     InverseMelSpectrogramPipeline,
 )
-from music_controlnet.script.config import Config
-from music_controlnet.utils import auto_device
 
 
-# TODO: add another parameter
 def inference_unet(
     cfg: Config,
-    post_pipeline: Callable[[torch.Tensor], torch.Tensor] | None = None,
+    post_pipeline: PostPipeline | None = None,
 ) -> torch.Tensor:
     ci = cfg.infer
     cm = cfg.mel
@@ -48,7 +45,6 @@ def _check_ckpt_path(ci):
 
 
 def inference(cfg: Config):
-    device = auto_device()
-    pipeline = InverseMelSpectrogramPipeline(cfg.mel).to(device)
+    pipeline = InverseMelSpectrogramPipeline(cfg.mel)
     data = inference_unet(cfg, post_pipeline=pipeline)
     return data

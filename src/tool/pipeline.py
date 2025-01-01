@@ -6,8 +6,8 @@ from torchaudio.transforms import (
     MelSpectrogram,
 )
 
-from music_controlnet.script.config import MelConfig
-from music_controlnet.transforms import (
+from tool.config import MelConfig
+from tool.transforms import (
     Clamp,
     DBToAmplitude,
     Lambda,

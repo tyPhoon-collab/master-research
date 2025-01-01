@@ -2,13 +2,12 @@ import torch
 import torchaudio
 from torch.utils.data import Dataset
 
-from music_controlnet.loader.audio_loader import AudioLoader, TorchAudioLoader
-from music_controlnet.module.data.metadata import (
+from fma.metadata import (
     PADDING_INDEX,
     FMAMetadata,
     fma_audio_path,
 )
-from music_controlnet.types_ import FMADatasetReturn, Transform
+from fma.types_ import FMADatasetReturn, Transform
 
 
 def collate_fn(batch: list[FMADatasetReturn]) -> FMADatasetReturn:
@@ -38,14 +37,11 @@ class FMADataset(Dataset[FMADatasetReturn]):
         sample_rate: int,
         num_segments: int = 1,
         transform: Transform | None = None,
-        audio_loader: AudioLoader | None = None,  # default is torchaudio loader
     ):
         super().__init__()
 
         self.audio_dir = audio_dir
         self.transform = transform
-
-        self.audio_loader: AudioLoader = audio_loader or TorchAudioLoader()
 
         self.metadata = FMAMetadata(
             metadata_dir=metadata_dir,
@@ -64,7 +60,7 @@ class FMADataset(Dataset[FMADatasetReturn]):
         track_id: int = self.metadata.ids[id_index]
         audio_path = fma_audio_path(self.audio_dir, track_id)
 
-        waveform, sr = self.audio_loader.load(audio_path)
+        waveform, sr = self._load(audio_path)
         waveform_splitted = self.splitter(waveform, index)
         waveform_resampled = self.resampler(waveform_splitted, sr)
         transformed = self._transform(waveform_resampled)
@@ -75,6 +71,10 @@ class FMADataset(Dataset[FMADatasetReturn]):
 
     def _transform(self, waveform):
         return self.transform(waveform) if self.transform else waveform
+
+    def _load(self, audio_path: str) -> tuple[torch.Tensor, int]:
+        waveform, sr = torchaudio.load(audio_path)
+        return waveform, sr
 
 
 class Resampler:

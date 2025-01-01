@@ -6,7 +6,7 @@ sample_rate = 22050
 def test_dataset():
     import torch
 
-    from music_controlnet.module.data.dataset import FMADataset
+    from fma.dataset import FMADataset
 
     dataset = FMADataset(
         metadata_dir=metadata_dir,
@@ -26,8 +26,8 @@ def test_dataset():
 def test_datamodule():
     import torch
 
-    from music_controlnet.module.data.datamodule import FMAMelSpectrogramDataModule
-    from music_controlnet.script.config import MelConfig
+    from tool.config import MelConfig
+    from tool.datamodule import FMAMelSpectrogramDataModule
 
     c = MelConfig()
 
@@ -59,10 +59,9 @@ def test_datamodule():
 def test_unet_forward():
     import torch
 
-    from music_controlnet.module.model.unet import UNet
-    from music_controlnet.utils import auto_device
+    from music_controlnet.module.unet import UNet
 
-    device = auto_device()
+    device = "cuda"
     model = UNet().to(device)
 
     noise = model(
@@ -82,10 +81,9 @@ def test_unet_forward():
 def test_unet_generate():
     import torch
 
-    from music_controlnet.module.model.unet import UNet
-    from music_controlnet.utils import auto_device
+    from music_controlnet.module.unet import UNet
 
-    device = auto_device()
+    device = "cuda"
     model = UNet().to(device)
 
     sample = model.generate(160, 2560, timesteps=1)

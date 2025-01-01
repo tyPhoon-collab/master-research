@@ -6,7 +6,7 @@ from logging import getLogger
 import torch
 from soundfile import write
 
-from music_controlnet.plot import plot_spectrogram, plot_waveform
+from tool.plot import plot_spectrogram, plot_waveform
 
 logger = getLogger(__name__)
 

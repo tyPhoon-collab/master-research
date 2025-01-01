@@ -4,8 +4,7 @@ import os
 import polars as pl
 import torch
 
-from music_controlnet.loader.csv_loader import load_multi_header_csv
-from music_controlnet.types_ import Genres
+from fma.types_ import Genres
 
 PADDING_INDEX = 163
 NUM_GENRES = 163 + 1
@@ -17,6 +16,24 @@ def fma_audio_path(audio_dir: str, track_id: int) -> str:
     audio_path = os.path.join(audio_dir, folder_name, f"{track_id}.mp3")
 
     return audio_path
+
+
+def load_multi_header_csv(path: str, num_rows: int) -> pl.DataFrame:
+    # まずはヘッダー部分を読み込む
+    header = pl.read_csv(path, n_rows=num_rows, has_header=False)
+
+    # ヘッダーを結合して新しい列名を作成
+    combined_header = [
+        "_".join(map(str, filter(None, col))) for col in zip(*header.to_numpy())
+    ]
+
+    # データ部分を読み込む
+    df = pl.read_csv(path, skip_rows=num_rows, has_header=False)
+
+    # 列名を設定
+    df.columns = combined_header
+
+    return df
 
 
 # [mdeff/fma Wiki](https://github.com/mdeff/fma/wiki#excerpts-shorter-than-30s-and-erroneous-audio-length-metadata)

@@ -1,7 +1,6 @@
 from logging import getLogger
 
-from music_controlnet.module.model_logger import ModelLogger
-from music_controlnet.script.config import Config
+from tool.config import Config
 
 logger = getLogger(__name__)
 
@@ -11,8 +10,8 @@ def train_unet(c: Config):
     from hydra.utils import instantiate
     from lightning.pytorch.loggers import NeptuneLogger
 
-    from music_controlnet.module.data.datamodule import FMAMelSpectrogramDataModule
-    from music_controlnet.module.model.unet import UNet
+    from music_controlnet.module.unet import UNet
+    from tool.datamodule import FMAMelSpectrogramDataModule
 
     ct = c.train
     cm = c.mel
@@ -27,9 +26,6 @@ def train_unet(c: Config):
     trainer_logger = (
         instantiate(ct.trainer_logger) if ct.trainer_logger is not None else None
     )
-    model_logger: ModelLogger | None = (
-        instantiate(ct.model_logger) if ct.model_logger is not None else None
-    )
     callbacks = (
         [instantiate(callback) for callback in ct.callbacks] if ct.callbacks else None
     )
@@ -37,14 +33,9 @@ def train_unet(c: Config):
     criterion = instantiate(ct.criterion) if ct.criterion is not None else None
 
     logger.info(f"Trainer logger: {trainer_logger}")
-    logger.info(f"Model logger: {model_logger}")
-    logger.info(f"Callbacks: {callbacks}")
+    logger.info(f"Callbacks: {[type(callback) for callback in (callbacks or [])]}")
 
-    model = UNet(logger=model_logger, lr=ct.lr, criterion=criterion)
-
-    if model_logger is not None:
-        model_logger.set_model(model)
-        model_logger.set_config(c)
+    model = UNet(lr=ct.lr, criterion=criterion)
 
     trainer = L.Trainer(
         max_epochs=ct.epochs,

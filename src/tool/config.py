@@ -20,7 +20,6 @@ class TrainConfig:
 
     # instantiate
     trainer_logger: dict | None = None
-    model_logger: dict | None = None
     callbacks: list[dict] | None = None
 
 
@@ -35,10 +34,10 @@ class MelConfig:
     sample_rate: int = 22050
     n_fft: int = 2048
     win_length: int = 2048
-    hop_length: int = 256
+    hop_length: int = 512
     # sample_rate / hop_length * 30 / num_segments -> 16 * n -> 864 (n = 54)
-    fixed_length: int = 864
-    n_mels: int = 160
+    fixed_length: int = 432
+    n_mels: int = 128
     top_db: int = 80
     num_segments: int = 3
 

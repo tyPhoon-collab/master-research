@@ -8,12 +8,13 @@ from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from torch.optim import Adam
 from tqdm import tqdm
 
-from music_controlnet.module.data.metadata import NUM_GENRES, PADDING_INDEX
+from fma.metadata import NUM_GENRES, PADDING_INDEX
 from music_controlnet.module.inference_callbacks import (
     ComposeInferenceCallback,
     InferenceCallback,
 )
-from music_controlnet.module.model_logger import ModelLogger
+
+PostPipeline = Callable[[torch.Tensor], torch.Tensor] | torch.nn.Module
 
 
 class UNet(L.LightningModule):
@@ -21,7 +22,6 @@ class UNet(L.LightningModule):
         self,
         lr: float = 1e-4,
         criterion: torch.nn.Module | None = None,
-        logger: ModelLogger | None = None,
     ):
         super().__init__()
 
@@ -62,8 +62,6 @@ class UNet(L.LightningModule):
         self.lr = lr
         self.criterion = criterion or torch.nn.L1Loss()
 
-        self._logger = logger
-
     def training_step(self, batch, batch_idx):
         mel, genres = batch
         noise = torch.randn_like(mel)
@@ -81,14 +79,8 @@ class UNet(L.LightningModule):
         loss = self.criterion(residual, noise)
 
         self.log("train_loss", loss, prog_bar=True)
-        if self._logger is not None:
-            self._logger.on_batch_loss(loss)
 
         return loss
-
-    def on_train_epoch_end(self) -> None:
-        if self._logger is not None:
-            self._logger.on_epoch_end()
 
     def configure_optimizers(self):
         optimizer = Adam(self.parameters(), lr=self.lr)  # TODO: consider decay
@@ -107,12 +99,17 @@ class UNet(L.LightningModule):
         callbacks: list[InferenceCallback] | None = None,
         show_progress: bool = True,
         scheduler: Any | None = None,
-        post_pipeline: Callable[[torch.Tensor], torch.Tensor] | None = None,
+        post_pipeline: PostPipeline | None = None,
     ) -> torch.Tensor:
         training = self.model.training
         noise_shape = (1, 1, n_mels, length)
         callback = ComposeInferenceCallback(callbacks)
         scheduler_ = scheduler or self.scheduler
+        post_pipeline_ = (
+            post_pipeline.to(self.device)
+            if isinstance(post_pipeline, torch.nn.Module)
+            else post_pipeline
+        )
 
         try:
             self.model.eval()
@@ -143,7 +140,9 @@ class UNet(L.LightningModule):
 
                 callback.on_timestep(int_t, sample)
 
-            sample = post_pipeline(sample) if post_pipeline else sample
+            if post_pipeline_:
+                sample = post_pipeline_(sample)
+
             callback.on_inference_end(sample)
             return sample
 

@@ -1,9 +1,9 @@
 import lightning as L
 from torch.utils.data import DataLoader, random_split
 
-from music_controlnet.module.data.dataset import FMADataset, collate_fn
-from music_controlnet.pipeline import MelSpectrogramPipeline
-from music_controlnet.script.config import MelConfig
+from fma.dataset import FMADataset, collate_fn
+from tool.config import MelConfig
+from tool.pipeline import MelSpectrogramPipeline
 
 
 class FMAMelSpectrogramDataModule(L.LightningDataModule):
@@ -19,7 +19,8 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
         super().__init__()
         self.metadata_dir = metadata_dir
         self.audio_dir = audio_dir
-        self.mel_config = mel_config
+        self.sample_rate = mel_config.sample_rate
+        self.num_segments = mel_config.num_segments
         self.batch_size = batch_size
         self.transform = MelSpectrogramPipeline(mel_config)
         self.val_split = val_split
@@ -31,8 +32,8 @@ class FMAMelSpectrogramDataModule(L.LightningDataModule):
         dataset = FMADataset(
             metadata_dir=self.metadata_dir,
             audio_dir=self.audio_dir,
-            sample_rate=self.mel_config.sample_rate,
-            num_segments=self.mel_config.num_segments,
+            sample_rate=self.sample_rate,
+            num_segments=self.num_segments,
             transform=self.transform,
         )
 
