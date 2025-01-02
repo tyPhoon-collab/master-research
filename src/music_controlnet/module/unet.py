@@ -17,7 +17,7 @@ from music_controlnet.module.inference_callbacks import (
 PostPipeline = Callable[[torch.Tensor], torch.Tensor] | torch.nn.Module
 
 
-class UNet(L.LightningModule):
+class UNetLightning(L.LightningModule):
     def __init__(
         self,
         lr: float = 1e-4,
@@ -63,7 +63,9 @@ class UNet(L.LightningModule):
         self.criterion = criterion or torch.nn.L1Loss()
 
     def training_step(self, batch, batch_idx):
-        mel, genres = batch
+        mel = batch["mel"]
+        genres = batch["genres"]
+
         noise = torch.randn_like(mel)
         timesteps = torch.randint(
             len(self.scheduler),
@@ -71,12 +73,8 @@ class UNet(L.LightningModule):
             device=self.device,
         )
         noisy_mel = self.scheduler.add_noise(mel, noise, timesteps)  # type: ignore
-
-        # forward
-        residual = self(noisy_mel, timesteps, genres).sample
-
-        # ノイズとの損失を計算。self.modelはノイズを出力する
-        loss = self.criterion(residual, noise)
+        noise_pred = self(noisy_mel, timesteps, genres).sample
+        loss = self.criterion(noise_pred, noise)
 
         self.log("train_loss", loss, prog_bar=True)
 
@@ -86,7 +84,7 @@ class UNet(L.LightningModule):
         optimizer = Adam(self.parameters(), lr=self.lr)  # TODO: consider decay
         return optimizer
 
-    def forward(self, x, timestep, genres: torch.Tensor):
+    def forward(self, x: torch.Tensor, timestep: torch.Tensor, genres: torch.Tensor):
         return self.model(x, timestep, class_labels=genres)
 
     @torch.inference_mode()
@@ -98,54 +96,44 @@ class UNet(L.LightningModule):
         timesteps: int = 1000,
         callbacks: list[InferenceCallback] | None = None,
         show_progress: bool = True,
-        scheduler: Any | None = None,
+        inference_scheduler: Any | None = None,
         post_pipeline: PostPipeline | None = None,
     ) -> torch.Tensor:
-        training = self.model.training
+        training = self.training
+        self.eval()
+
         noise_shape = (1, 1, n_mels, length)
+
         callback = ComposeInferenceCallback(callbacks)
-        scheduler_ = scheduler or self.scheduler
-        post_pipeline_ = (
-            post_pipeline.to(self.device)
-            if isinstance(post_pipeline, torch.nn.Module)
-            else post_pipeline
-        )
 
-        try:
-            self.model.eval()
+        scheduler = inference_scheduler or self.scheduler
+        scheduler.set_timesteps(timesteps)
 
-            callback.on_inference_start()
+        if isinstance(post_pipeline, torch.nn.Module):
+            post_pipeline = post_pipeline.to(self.device)
 
-            device = self.model.device
+        callback.on_inference_start()
 
-            # genresが指定されていない場合のデフォルト設定
-            # Hip-Hop
-            genres = genres or torch.tensor([[21]], device=device)
+        # Hip-Hop: 21
+        genres = genres or torch.tensor([[21]], device=self.device)
+        sample = torch.randn(noise_shape, device=self.device)
 
-            scheduler = self.scheduler or self.model.scheduler
-            scheduler_.set_timesteps(timesteps)
+        for t in tqdm(
+            scheduler.timesteps,
+            desc="Generating",
+            disable=not show_progress,
+        ):
+            noise_pred = self.model(sample, t, genres).sample
+            sample = scheduler.step(noise_pred, int(t.item()), sample).prev_sample  # type: ignore
 
-            sample = torch.randn(noise_shape, device=device)
+            callback.on_timestep(int(t.item()), sample)
 
-            tqdm_timesteps = tqdm(
-                scheduler_.timesteps,
-                desc="Generating",
-                disable=not show_progress,
-            )
+        if post_pipeline:
+            sample = post_pipeline(sample)
 
-            for t in tqdm_timesteps:
-                noise_pred = self.model(sample, t, genres).sample
-                int_t = int(t.item())
-                sample = scheduler.step(noise_pred, int_t, sample).prev_sample  # type: ignore
+        callback.on_inference_end(sample)
 
-                callback.on_timestep(int_t, sample)
+        if training:
+            self.train()
 
-            if post_pipeline_:
-                sample = post_pipeline_(sample)
-
-            callback.on_inference_end(sample)
-            return sample
-
-        finally:
-            if training:
-                self.model.train()
+        return sample

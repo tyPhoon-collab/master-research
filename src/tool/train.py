@@ -6,22 +6,43 @@ logger = getLogger(__name__)
 
 
 def train_unet(c: Config):
+    from hydra.utils import instantiate
+
+    from music_controlnet.module.unet import UNetLightning
+    from tool.factory import build_unet_datamodule
+
+    ct = c.train
+
+    datamodule = build_unet_datamodule(c)
+
+    criterion = instantiate(ct.criterion) if ct.criterion is not None else None
+    model = UNetLightning(lr=ct.lr, criterion=criterion)
+
+    _base_train(c, datamodule, model)
+
+
+def train_diffwave(c: Config):
+    from hydra.utils import instantiate
+
+    from tool.factory import build_diffwave_datamodule
+    from vocoder.module.diffwave import DiffWaveLightning
+
+    ct = c.train
+
+    datamodule = build_diffwave_datamodule(c)
+
+    criterion = instantiate(ct.criterion) if ct.criterion is not None else None
+    model = DiffWaveLightning(n_mels=c.mel.n_mels, lr=ct.lr, criterion=criterion)
+
+    _base_train(c, datamodule, model)
+
+
+def _base_train(c: Config, datamodule, model):
     import lightning as L
     from hydra.utils import instantiate
     from lightning.pytorch.loggers import NeptuneLogger
 
-    from music_controlnet.module.unet import UNet
-    from tool.datamodule import FMAMelSpectrogramDataModule
-
     ct = c.train
-    cm = c.mel
-
-    datamodule = FMAMelSpectrogramDataModule(
-        metadata_dir=ct.metadata_dir,
-        audio_dir=ct.audio_dir,
-        batch_size=ct.batch_size,
-        mel_config=cm,
-    )
 
     trainer_logger = (
         instantiate(ct.trainer_logger) if ct.trainer_logger is not None else None
@@ -30,12 +51,8 @@ def train_unet(c: Config):
         [instantiate(callback) for callback in ct.callbacks] if ct.callbacks else None
     )
 
-    criterion = instantiate(ct.criterion) if ct.criterion is not None else None
-
     logger.info(f"Trainer logger: {trainer_logger}")
     logger.info(f"Callbacks: {[type(callback) for callback in (callbacks or [])]}")
-
-    model = UNet(lr=ct.lr, criterion=criterion)
 
     trainer = L.Trainer(
         max_epochs=ct.epochs,

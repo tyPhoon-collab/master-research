@@ -7,25 +7,31 @@ from fma.metadata import (
     FMAMetadata,
     fma_audio_path,
 )
-from fma.types_ import FMADatasetReturn, Transform
+from fma.types import FMADatasetReturn, Transform
 
 
 def collate_fn(batch: list[FMADatasetReturn]) -> FMADatasetReturn:
-    waveforms, genres = zip(*batch)
+    keys = batch[0].keys()
 
-    batch_waveforms = torch.stack(waveforms)
-
-    max_genre_dim = max(genre.size(0) for genre in genres)
-
-    batch_genres = torch.full(
-        (len(genres), max_genre_dim),
-        PADDING_INDEX,
+    max_genres_dim = max(item["genres"].size(-1) for item in batch)
+    batched_genres = torch.stack(
+        [
+            torch.nn.functional.pad(
+                item["genres"],
+                (0, max_genres_dim - item["genres"].size(-1)),
+                value=PADDING_INDEX,
+            )
+            for item in batch
+        ]
     )
 
-    for i, genre in enumerate(genres):
-        batch_genres[i, : genre.size(0)] = genre
+    other_keys = {
+        key: torch.stack([item[key] for item in batch])
+        for key in keys
+        if key != "genres"
+    }
 
-    return batch_waveforms, batch_genres
+    return {**other_keys, "genres": batched_genres}
 
 
 class FMADataset(Dataset[FMADatasetReturn]):
@@ -67,7 +73,10 @@ class FMADataset(Dataset[FMADatasetReturn]):
 
         genres = self.metadata.to_genre_indics(id_index)
 
-        return transformed, genres
+        return {
+            **transformed,
+            "genres": genres,
+        }
 
     def _transform(self, waveform):
         return self.transform(waveform) if self.transform else waveform

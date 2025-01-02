@@ -1,7 +1,7 @@
 import hydra
 from hydra.core.config_store import ConfigStore
 
-from tool.config import Config, Mode
+from tool.config import Config
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=Config)
@@ -13,6 +13,12 @@ class _Handler:
         from tool.train import train_unet
 
         train_unet(cfg)
+
+    @staticmethod
+    def train_diffwave(cfg):
+        from tool.train import train_diffwave
+
+        train_diffwave(cfg)
 
     @staticmethod
     def infer_unet(cfg):
@@ -30,9 +36,10 @@ class _Handler:
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: Config):
     mode_methods = {
-        Mode.train_unet.name: _Handler.train_unet,
-        Mode.infer_unet.name: _Handler.infer_unet,
-        Mode.infer.name: _Handler.infer,
+        "train_unet": _Handler.train_unet,
+        "train_diffwave": _Handler.train_diffwave,
+        "infer_unet": _Handler.infer_unet,
+        "infer": _Handler.infer,
     }
 
     if cfg.mode not in mode_methods:

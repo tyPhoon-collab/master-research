@@ -2,27 +2,28 @@ import lightning as L
 from torch.utils.data import DataLoader, random_split
 
 from fma.dataset import FMADataset, collate_fn
-from tool.config import MelConfig
-from tool.pipeline import MelSpectrogramPipeline
+from fma.types import Transform
 
 
-class FMAMelSpectrogramDataModule(L.LightningDataModule):
+class FMADataModule(L.LightningDataModule):
     def __init__(
         self,
         *,
         metadata_dir: str,
         audio_dir: str,
-        mel_config: MelConfig,
+        sample_rate: int,
+        num_segments: int,
+        transform: Transform | None,
         batch_size: int,
         val_split: float = 0.2,
     ):
         super().__init__()
         self.metadata_dir = metadata_dir
         self.audio_dir = audio_dir
-        self.sample_rate = mel_config.sample_rate
-        self.num_segments = mel_config.num_segments
+        self.sample_rate = sample_rate
+        self.num_segments = num_segments
         self.batch_size = batch_size
-        self.transform = MelSpectrogramPipeline(mel_config)
+        self.transform = transform
         self.val_split = val_split
 
     def setup(self, stage: str):

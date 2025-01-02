@@ -4,6 +4,7 @@
         "controlnet",
         "DDIM",
         "DDPM",
+        "diffwave",
         "downsample",
         "downsampling",
         "hyperparams",

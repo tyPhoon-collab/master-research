@@ -17,24 +17,27 @@ def test_dataset():
 
     assert len(dataset) > 0
 
-    waveform, genres = dataset[0]
+    waveform, mel, genres = dataset[0]
 
     assert isinstance(waveform, torch.Tensor)
+    assert isinstance(mel, torch.Tensor)
     assert isinstance(genres, torch.Tensor)
 
 
 def test_datamodule():
     import torch
 
+    from fma.datamodule import FMADataModule
     from tool.config import MelConfig
-    from tool.datamodule import FMAMelSpectrogramDataModule
 
     c = MelConfig()
 
-    datamodule = FMAMelSpectrogramDataModule(
+    datamodule = FMADataModule(
         metadata_dir=metadata_dir,
         audio_dir=audio_dir,
-        mel_config=c,
+        sample_rate=sample_rate,
+        num_segments=1,
+        transform=None,
         batch_size=16,
     )
 
@@ -56,13 +59,13 @@ def test_datamodule():
     assert isinstance(genres, torch.Tensor)
 
 
-def test_unet_forward():
+def test_unet():
     import torch
 
-    from music_controlnet.module.unet import UNet
+    from music_controlnet.module.unet import UNetLightning
 
     device = "cuda"
-    model = UNet().to(device)
+    model = UNetLightning().to(device)
 
     noise = model(
         torch.randn(1, 1, 160, 2560, device=device),
@@ -81,10 +84,10 @@ def test_unet_forward():
 def test_unet_generate():
     import torch
 
-    from music_controlnet.module.unet import UNet
+    from music_controlnet.module.unet import UNetLightning
 
     device = "cuda"
-    model = UNet().to(device)
+    model = UNetLightning().to(device)
 
     sample = model.generate(160, 2560, timesteps=1)
 
@@ -94,3 +97,35 @@ def test_unet_generate():
     assert sample.size(2) == 160  # height is mel bins
     assert sample.size(3) == 2560  # width is time steps. trimmed to 2560
     assert sample.isnan().sum() == 0
+
+
+def test_diffwave():
+    import torch
+
+    from vocoder.module.diffwave import DiffWaveLightning
+
+    device = "cuda"
+    model = DiffWaveLightning(n_mels=128).to(device)
+
+    audio = model(
+        torch.randn(1, 1, 432 * 256, device=device),
+        torch.randint(0, 49, (1,), device=device),
+        torch.randn(1, 1, 128, 432, device=device),
+    )
+
+    assert isinstance(audio, torch.Tensor)
+
+
+def test_diffwave_generate():
+    import torch
+
+    from vocoder.module.diffwave import DiffWaveLightning
+
+    device = "cuda"
+    model = DiffWaveLightning(n_mels=128).to(device)
+
+    audio = model.generate(
+        torch.randn(1, 1, 128, 432, device=device),
+    )
+
+    assert isinstance(audio, torch.Tensor)

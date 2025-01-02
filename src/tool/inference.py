@@ -3,7 +3,7 @@ import os
 import torch
 from hydra.utils import instantiate
 
-from music_controlnet.module.unet import PostPipeline, UNet
+from music_controlnet.module.unet import PostPipeline, UNetLightning
 from tool.config import Config
 from tool.pipeline import (
     InverseMelSpectrogramPipeline,
@@ -19,7 +19,7 @@ def inference_unet(
 
     ckpt_path = _check_ckpt_path(ci)
 
-    model = UNet.load_from_checkpoint(ckpt_path)
+    model = UNetLightning.load_from_checkpoint(ckpt_path)
 
     callbacks = (
         [instantiate(callback) for callback in ci.callbacks] if ci.callbacks else None

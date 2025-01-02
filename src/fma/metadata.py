@@ -4,7 +4,7 @@ import os
 import polars as pl
 import torch
 
-from fma.types_ import Genres
+from fma.types import Genres
 
 PADDING_INDEX = 163
 NUM_GENRES = 163 + 1
