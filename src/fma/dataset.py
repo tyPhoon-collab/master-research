@@ -1,5 +1,6 @@
 import torch
 import torchaudio
+from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset
 
 from fma.metadata import (
@@ -13,16 +14,10 @@ from fma.types import FMADatasetReturn, Transform
 def collate_fn(batch: list[FMADatasetReturn]) -> FMADatasetReturn:
     keys = batch[0].keys()
 
-    max_genres_dim = max(item["genres"].size(-1) for item in batch)
-    batched_genres = torch.stack(
-        [
-            torch.nn.functional.pad(
-                item["genres"],
-                (0, max_genres_dim - item["genres"].size(-1)),
-                value=PADDING_INDEX,
-            )
-            for item in batch
-        ]
+    batched_genres = pad_sequence(
+        [item["genres"] for item in batch],
+        batch_first=True,
+        padding_value=PADDING_INDEX,
     )
 
     other_keys = {

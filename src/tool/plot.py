@@ -20,7 +20,7 @@ def plot_waveform(data) -> Figure:
     return fig
 
 
-def plotly_fig_to_pil_image(fig: Figure) -> ImageFile:
+def fig_to_pil_image(fig: Figure) -> ImageFile:
     import io
 
     from PIL import Image

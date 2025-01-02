@@ -2,7 +2,7 @@ from lightning import LightningModule, Trainer
 
 from callback.neptune import NeptuneLoggerCallback
 from music_controlnet.module.unet import UNetLightning
-from tool.plot import plot_spectrogram, plotly_fig_to_pil_image
+from tool.plot import fig_to_pil_image, plot_spectrogram
 
 
 class SimpleUNetNeptuneLoggerCallback(NeptuneLoggerCallback):
@@ -26,7 +26,7 @@ class SimpleUNetNeptuneLoggerCallback(NeptuneLoggerCallback):
         data = sample[0][0].cpu().numpy()
 
         fig = plot_spectrogram(data)
-        img = plotly_fig_to_pil_image(fig)
+        img = fig_to_pil_image(fig)
 
         self.run["train/sample"].append(img)
 
