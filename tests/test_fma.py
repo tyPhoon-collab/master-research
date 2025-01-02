@@ -78,12 +78,6 @@ def test_collate_fn():
 
     collated = collate_fn(batch)
 
-    assert isinstance(
-        collated["genres"], torch.Tensor
-    ), f"Unexpected type: {type(collated['genres'])}"
-    assert torch.equal(
-        collated["genres"][0], torch.tensor([1, 2, PADDING_INDEX])
-    ), f"Unexpected value for genres[0]: {collated['genres'][0]}"
-    assert torch.equal(
-        collated["genres"][1], torch.tensor([4, 5, 6])
-    ), f"Unexpected value for genres[1]: {collated['genres'][1]}"
+    assert isinstance(collated["genres"], torch.Tensor)
+    assert torch.equal(collated["genres"][0], torch.tensor([1, 2, PADDING_INDEX]))
+    assert torch.equal(collated["genres"][1], torch.tensor([4, 5, 6]))

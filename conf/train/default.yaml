@@ -11,5 +11,4 @@ criterion:
 fast_dev_run: true
 
 trainer_logger: null
-model_logger: null
 callbacks: null
