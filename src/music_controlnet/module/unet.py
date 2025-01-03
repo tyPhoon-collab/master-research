@@ -5,7 +5,6 @@ import lightning as L
 import torch
 from diffusers.models.unets.unet_2d import UNet2DModel
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
-from torch.optim import Adam
 from tqdm import tqdm
 
 from fma.metadata import NUM_GENRES, PADDING_INDEX
@@ -81,7 +80,10 @@ class UNetLightning(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = Adam(self.parameters(), lr=self.lr)  # TODO: consider decay
+        from schedulefree import RAdamScheduleFree
+
+        optimizer = RAdamScheduleFree(self.parameters(), lr=self.lr)
+
         return optimizer
 
     def forward(self, x: torch.Tensor, timestep: torch.Tensor, genres: torch.Tensor):
