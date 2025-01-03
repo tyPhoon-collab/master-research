@@ -51,7 +51,7 @@ class MelSpectrogramPipeline(torch.nn.Module):
                 power=2.0,
                 normalized=True,
             ),
-            TrimOrPad(target_length=c.fixed_length),
+            TrimOrPad(target_length=c.fixed_length, mode="replicate"),
             AmplitudeToDB(
                 stype="power",
                 top_db=c.top_db,

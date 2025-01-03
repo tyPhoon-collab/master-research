@@ -1,25 +1,30 @@
 from typing import Literal
 
 import torch
-import torchaudio.functional as F
+import torch.nn.functional as F
+import torchaudio
 
 
 class TrimOrPad(torch.nn.Module):
-    def __init__(self, target_length: int):
+    def __init__(
+        self,
+        target_length: int,
+        mode: Literal["constant", "reflect", "replicate"] = "constant",
+    ):
         super().__init__()
         self.target_length = target_length
+        self.mode = mode
 
-    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         target_length = self.target_length
-        current_length = waveform.size(-1)
+        current_length = x.size(-1)
 
         if current_length > target_length:
-            waveform = waveform[..., :target_length]
+            x = x[..., :target_length]
         elif current_length < target_length:
-            padding = target_length - current_length
-            waveform = torch.nn.functional.pad(waveform, (0, padding))
+            x = F.pad(x, (0, target_length - current_length), mode=self.mode)
 
-        return waveform
+        return x
 
 
 class ToMono(torch.nn.Module):
@@ -114,7 +119,7 @@ class DBToAmplitude(torch.nn.Module):
         self.ttype = ttype
 
     def forward(self, db: torch.Tensor) -> torch.Tensor:
-        return F.DB_to_amplitude(
+        return torchaudio.functional.DB_to_amplitude(
             db,
             ref=1.0,
             power=1 if self.ttype == "power" else 0.5,
