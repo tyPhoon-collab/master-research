@@ -32,6 +32,12 @@ class _Handler:
 
         inference(cfg)
 
+    @staticmethod
+    def doctor(cfg):
+        from tool.doctor import doctor
+
+        doctor(cfg)
+
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: Config):
@@ -40,6 +46,7 @@ def main(cfg: Config):
         "train_diffwave": _Handler.train_diffwave,
         "infer_unet": _Handler.infer_unet,
         "infer": _Handler.infer,
+        "doctor": _Handler.doctor,
     }
 
     if cfg.mode not in mode_methods:

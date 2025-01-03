@@ -75,15 +75,6 @@ class UNetLightning(L.LightningModule):
         noise_pred = self(noisy_mel, timesteps, genres).sample
         loss = self.criterion(noise_pred, noise)
 
-        # Check for NaNs
-        msg = f"NaNs found in training_step. audio_path: {batch['audio_path']}"
-        assert mel.isnan().sum() == 0, msg
-        assert genres.isnan().sum() == 0, msg
-        assert noise.isnan().sum() == 0, msg
-        assert noisy_mel.isnan().sum() == 0, msg
-        assert noise_pred.isnan().sum() == 0, msg
-        assert loss.isnan().sum() == 0, msg
-
         self.log("train_loss", loss, prog_bar=True)
 
         return loss

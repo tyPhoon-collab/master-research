@@ -110,7 +110,13 @@ class Scale(torch.nn.Module):
         t_min, t_max = self.to_
         max = self.max or x.max()
         min = self.min or x.min()
-        return (x - min) / (max - min) * (t_max - t_min) + t_min
+
+        range = max - min
+
+        if range == 0:
+            return x
+
+        return (x - min) / range * (t_max - t_min) + t_min
 
 
 class DBToAmplitude(torch.nn.Module):

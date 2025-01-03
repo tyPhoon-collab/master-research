@@ -73,8 +73,9 @@ def test_collate_fn():
 
     from fma.dataset import collate_fn
     from fma.metadata import PADDING_INDEX
+    from fma.types import FMADatasetReturn
 
-    batch = [
+    batch: list[FMADatasetReturn] = [
         {"genres": torch.tensor([1, 2]), "mel": torch.randn(1, 160, 2560)},
         {"genres": torch.tensor([4, 5, 6]), "mel": torch.randn(1, 160, 2560)},
     ]
@@ -82,9 +83,12 @@ def test_collate_fn():
     collated = collate_fn(batch)
 
     assert collated.keys() == {"mel", "genres"}
-    assert collated["mel"].ndim == 4  # batch, channel, height, width
-    assert collated["mel"].size(0) == 2  # batch size
-    assert collated["genres"].ndim == 2  # batch, length
-    assert collated["genres"].size(0) == 2  # batch size
-    assert torch.equal(collated["genres"][0], torch.tensor([1, 2, PADDING_INDEX]))
-    assert torch.equal(collated["genres"][1], torch.tensor([4, 5, 6]))
+    mel: torch.Tensor = collated["mel"]  # type: ignore
+    genres: torch.Tensor = collated["genres"]  # type: ignore
+
+    assert mel.ndim == 4  # batch, channel, height, width
+    assert mel.size(0) == 2  # batch size
+    assert genres.ndim == 2  # batch, length
+    assert genres.size(0) == 2  # batch size
+    assert torch.equal(genres[0], torch.tensor([1, 2, PADDING_INDEX]))
+    assert torch.equal(genres[1], torch.tensor([4, 5, 6]))
