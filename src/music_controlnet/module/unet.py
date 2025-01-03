@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Dict, Literal
 
 import lightning as L
 import torch
@@ -75,6 +75,15 @@ class UNetLightning(L.LightningModule):
         noise_pred = self(noisy_mel, timesteps, genres).sample
         loss = self.criterion(noise_pred, noise)
 
+        # Check for NaNs
+        msg = f"NaNs found in training_step. audio_path: {batch['audio_path']}"
+        assert mel.isnan().sum() == 0, msg
+        assert genres.isnan().sum() == 0, msg
+        assert noise.isnan().sum() == 0, msg
+        assert noisy_mel.isnan().sum() == 0, msg
+        assert noise_pred.isnan().sum() == 0, msg
+        assert loss.isnan().sum() == 0, msg
+
         self.log("train_loss", loss, prog_bar=True)
 
         return loss
@@ -82,9 +91,27 @@ class UNetLightning(L.LightningModule):
     def configure_optimizers(self):
         from schedulefree import RAdamScheduleFree
 
-        optimizer = RAdamScheduleFree(self.parameters(), lr=self.lr)
+        self.optimizer = RAdamScheduleFree(self.parameters(), lr=self.lr)
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
 
-        return optimizer
+        return self.optimizer
+
+    # optimizer hooks
+    def on_train_epoch_start(self):
+        self._set_optimizer_mode("train")
+
+    def on_save_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
+        self._set_optimizer_mode("eval")
+
+    def on_load_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
+        self._set_optimizer_mode("train")
+
+    def _set_optimizer_mode(self, mode: Literal["train", "eval"]) -> None:
+        # ScheduleFreeなOptimizerはtrain/evalを切り替える必要がある場合がある
+        if hasattr(self, "optimizer") and callable(getattr(self.optimizer, mode, None)):
+            getattr(self.optimizer, mode)()
+
+    # end optimizer hooks
 
     def forward(self, x: torch.Tensor, timestep: torch.Tensor, genres: torch.Tensor):
         return self.model(x, timestep, class_labels=genres)

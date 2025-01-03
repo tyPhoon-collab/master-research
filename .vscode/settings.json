@@ -15,6 +15,7 @@
         "ndarray",
         "randn",
         "Resampler",
+        "schedulefree",
         "specshow",
         "stft",
         "stype",

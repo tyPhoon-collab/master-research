@@ -1,5 +1,6 @@
 import ast
 import os
+from logging import getLogger
 
 import polars as pl
 import torch
@@ -8,6 +9,8 @@ from fma.types import Genres
 
 PADDING_INDEX = 163
 NUM_GENRES = 163 + 1
+
+logger = getLogger(__name__)
 
 
 def fma_audio_path(audio_dir: str, track_id: int) -> str:
@@ -114,9 +117,13 @@ class FMAMetadata:
         if len(metadata_exists) == 0:
             raise FileNotFoundError("No valid audio file found")
 
+        logger.info(f"Found {len(metadata_exists)} valid audio files")
         self.ids = metadata_exists.filter(~pl.col("track_id").is_in(ignore_ids or []))[
             "track_id"
         ]
+        logger.info(
+            f'Found {len(self.ids)} valid tracks. {len(ignore_ids or [])} tracks are ignored by "ignore_ids".'
+        )
         self.str_genre_ids = metadata_exists["track_genres"]
 
         genre_ids = pl.read_csv(os.path.join(metadata_dir, "genres.csv"))["genre_id"]

@@ -15,16 +15,24 @@ def collate_fn(batch: list[FMADatasetReturn]) -> FMADatasetReturn:
     keys = batch[0].keys()
 
     batched_genres = pad_sequence(
-        [item["genres"] for item in batch],
+        [item["genres"] for item in batch],  # type: ignore
         batch_first=True,
         padding_value=PADDING_INDEX,
     )
 
-    other_keys = {
-        key: torch.stack([item[key] for item in batch])
-        for key in keys
-        if key != "genres"
-    }
+    other_keys = {}
+
+    for key in keys:
+        if key == "genres":
+            continue
+        elif isinstance(batch[0][key], torch.Tensor):
+            other_keys[key] = torch.stack([item[key] for item in batch])  # type: ignore
+        elif isinstance(batch[0][key], str):
+            other_keys[key] = [item[key] for item in batch]
+        else:
+            raise ValueError(
+                f"Unsupported data type for key '{key}': {type(batch[0][key])}"
+            )
 
     return {**other_keys, "genres": batched_genres}
 
@@ -71,6 +79,7 @@ class FMADataset(Dataset[FMADatasetReturn]):
         return {
             **transformed,
             "genres": genres,
+            "audio_path": audio_path,
         }
 
     def _transform(self, waveform):
