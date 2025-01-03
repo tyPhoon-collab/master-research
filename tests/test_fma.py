@@ -74,10 +74,17 @@ def test_collate_fn():
     from fma.dataset import collate_fn
     from fma.metadata import PADDING_INDEX
 
-    batch = [{"genres": torch.tensor([1, 2])}, {"genres": torch.tensor([4, 5, 6])}]
+    batch = [
+        {"genres": torch.tensor([1, 2]), "mel": torch.randn(1, 160, 2560)},
+        {"genres": torch.tensor([4, 5, 6]), "mel": torch.randn(1, 160, 2560)},
+    ]
 
     collated = collate_fn(batch)
 
-    assert isinstance(collated["genres"], torch.Tensor)
+    assert collated.keys() == {"mel", "genres"}
+    assert collated["mel"].ndim == 4  # batch, channel, height, width
+    assert collated["mel"].size(0) == 2  # batch size
+    assert collated["genres"].ndim == 2  # batch, length
+    assert collated["genres"].size(0) == 2  # batch size
     assert torch.equal(collated["genres"][0], torch.tensor([1, 2, PADDING_INDEX]))
     assert torch.equal(collated["genres"][1], torch.tensor([4, 5, 6]))
