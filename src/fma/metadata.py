@@ -66,6 +66,12 @@ def load_multi_header_csv(path: str, num_rows: int) -> pl.DataFrame:
 # fma_medium/127/127336.mp3 => 0s
 # fma_medium/133/133297.mp3 => 0s
 # fma_medium/143/143992.mp3 => 0s
+
+# 独自でチェックした不適切なデータ群
+# fma_small\107\107535.mp3 => 音がかなり小さい
+# fma_small\110\110736.mp3 => ほとんど無音
+# fma_small\119\119979.mp3 => ほとんど無音
+# fma_medium\130\130169.mp3 => ほとんど無音
 _default_ignore_ids = [
     1486,
     5574,
@@ -88,6 +94,11 @@ _default_ignore_ids = [
     127336,
     133297,
     143992,
+    #
+    107535,
+    110736,
+    119979,
+    130169,
 ]
 
 

@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 import torchaudio
 from torch.nn.utils.rnn import pad_sequence
@@ -11,7 +13,7 @@ from fma.metadata import (
 from fma.types import FMADatasetReturn, Transform
 
 
-def collate_fn(batch: list[FMADatasetReturn]) -> FMADatasetReturn:
+def collate_fn(batch: list[FMADatasetReturn]) -> dict[str, Any]:
     keys = batch[0].keys()
 
     batched_genres = pad_sequence(

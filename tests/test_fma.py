@@ -83,8 +83,8 @@ def test_collate_fn():
     collated = collate_fn(batch)
 
     assert collated.keys() == {"mel", "genres"}
-    mel: torch.Tensor = collated["mel"]  # type: ignore
-    genres: torch.Tensor = collated["genres"]  # type: ignore
+    mel: torch.Tensor = collated["mel"]
+    genres: torch.Tensor = collated["genres"]
 
     assert mel.ndim == 4  # batch, channel, height, width
     assert mel.size(0) == 2  # batch size
