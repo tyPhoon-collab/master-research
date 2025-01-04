@@ -6,7 +6,22 @@ sample_rate = 22050
 
 
 def test_train_unet():
-    pass
+    from tool.config import Config
+    from tool.train import train_unet
+
+    c = Config(
+        mode="train_unet",
+        data=DataConfig(
+            metadata_dir=metadata_dir,
+            audio_dir=audio_dir,
+        ),
+        train=TrainConfig(
+            batch_size=1,
+            fast_dev_run=True,
+        ),
+    )
+
+    train_unet(c)
 
 
 def test_train_diffwave():
