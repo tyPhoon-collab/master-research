@@ -38,6 +38,12 @@ class _Handler:
 
         doctor(cfg)
 
+    @staticmethod
+    def clean(cfg):
+        from tool.clean import clean
+
+        clean()
+
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: Config):
@@ -47,6 +53,7 @@ def main(cfg: Config):
         "infer_unet": _Handler.infer_unet,
         "infer": _Handler.infer,
         "doctor": _Handler.doctor,
+        "clean": _Handler.clean,
     }
 
     if cfg.mode not in mode_methods:

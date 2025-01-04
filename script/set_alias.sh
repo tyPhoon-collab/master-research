@@ -11,3 +11,7 @@ function tdw() {
 function doctor() {
     uv run main.py mode=doctor "$@"
 }
+
+function cln() {
+    uv run main.py mode=clean "$@"
+}

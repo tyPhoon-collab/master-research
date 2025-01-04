@@ -9,3 +9,7 @@ function tdw {
 function doctor {
     uv run main.py mode=doctor @args
 }
+
+function cln {
+    uv run main.py mode=clean @args
+}

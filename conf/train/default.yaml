@@ -1,6 +1,3 @@
-metadata_dir: "./data/FMA/fma_metadata"
-audio_dir: "./data/FMA/fma_small"
-
 batch_size: 4
 epochs: 1
 lr: 0.001
