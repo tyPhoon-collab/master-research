@@ -17,6 +17,7 @@ def delete_folder(folder_path):
     accept = Confirm.ask(f"Delete folder '{folder_path}'?", default=True)
     if not accept:
         console.print(f"Skipped '{folder_path}'.", style="yellow")
+        return
 
     try:
         shutil.rmtree(folder_path)
