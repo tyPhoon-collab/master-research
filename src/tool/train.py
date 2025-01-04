@@ -60,6 +60,7 @@ def _train(c: Config, datamodule, model):
         logger=trainer_logger,
         callbacks=callbacks,
         profiler=ct.profiler,
+        accumulate_grad_batches=ct.accumulate_grad_batches,
     )
     trainer.fit(model, datamodule=datamodule)
 

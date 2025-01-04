@@ -1,18 +1,26 @@
-from dataclasses import dataclass, field
+from dataclasses import field
+from pathlib import Path
+from typing import Literal
+
+from pydantic import DirectoryPath, FilePath, PositiveFloat, PositiveInt
+from pydantic.dataclasses import dataclass
+
+Mode = Literal["train_unet", "train_diffwave", "infer_unet", "infer", "doctor", "clean"]
 
 
 @dataclass(frozen=True)
 class DataConfig:
-    metadata_dir: str = "./data/FMA/fma_metadata"
-    audio_dir: str = "./data/FMA/fma_small"
+    metadata_dir: DirectoryPath = field(default=Path("./data/FMA/fma_metadata"))
+    audio_dir: DirectoryPath = field(default=Path("./data/FMA/fma_small"))
 
 
 @dataclass(frozen=True)
 class TrainConfig:
-    batch_size: int = 2
-    epochs: int = 1
-    lr: float = 1e-4
+    batch_size: PositiveInt = 2
+    epochs: PositiveInt = 1
+    lr: PositiveFloat = 1e-4
     criterion: dict | None = None
+    accumulate_grad_batches: PositiveInt = 1
 
     profiler: str | None = None
 
@@ -26,27 +34,25 @@ class TrainConfig:
 
 @dataclass(frozen=True)
 class InferConfig:
-    checkpoint_path: str | None = None
+    checkpoint_path: FilePath | None = None
     callbacks: list[dict] | None = None
 
 
 @dataclass(frozen=True)
 class MelConfig:
-    sr: int = 22050
-    n_fft: int = 2048
-    win_length: int = 2048
-    hop_length: int = 256
-    # sr / hop_length * 30 / num_segments -> 16 * n -> 864 (n = 54)
-    fixed_length: int = 864
-    n_mels: int = 128
-    top_db: int = 80
-    num_segments: int = 3
+    sr: PositiveInt = 22050
+    n_fft: PositiveInt = 2048
+    win_length: PositiveInt = 2048
+    hop_length: PositiveInt = 256
+    fixed_length: PositiveInt = 864
+    n_mels: PositiveInt = 128
+    top_db: PositiveInt = 80
+    num_segments: PositiveInt = 3
 
 
 @dataclass(frozen=True)
 class Config:
-    # Literal["train_unet", "train_diffwave", "infer_unet", "infer"]
-    mode: str = "train_unet"
+    mode: Mode = "train_unet"
 
     data: DataConfig = field(default_factory=DataConfig)
     train: TrainConfig = field(default_factory=TrainConfig)
