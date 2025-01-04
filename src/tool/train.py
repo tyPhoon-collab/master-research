@@ -18,7 +18,7 @@ def train_unet(c: Config):
     criterion = instantiate(ct.criterion) if ct.criterion is not None else None
     model = UNetLightning(lr=ct.lr, criterion=criterion)
 
-    _base_train(c, datamodule, model)
+    _train(c, datamodule, model)
 
 
 def train_diffwave(c: Config):
@@ -34,10 +34,10 @@ def train_diffwave(c: Config):
     criterion = instantiate(ct.criterion) if ct.criterion is not None else None
     model = DiffWaveLightning(n_mels=c.mel.n_mels, lr=ct.lr, criterion=criterion)
 
-    _base_train(c, datamodule, model)
+    _train(c, datamodule, model)
 
 
-def _base_train(c: Config, datamodule, model):
+def _train(c: Config, datamodule, model):
     import lightning as L
     from hydra.utils import instantiate
     from lightning.pytorch.loggers import NeptuneLogger

@@ -7,8 +7,8 @@ def build_unet_datamodule(config: Config) -> FMADataModule:
     mel_pipeline = MelSpectrogramPipeline(config.mel)
 
     return FMADataModule(
-        metadata_dir=config.train.metadata_dir,
-        audio_dir=config.train.audio_dir,
+        metadata_dir=config.data.metadata_dir,
+        audio_dir=config.data.audio_dir,
         sample_rate=config.mel.sr,
         num_segments=config.mel.num_segments,
         transform=lambda x: {
@@ -23,8 +23,8 @@ def build_diffwave_datamodule(config: Config) -> FMADataModule:
     mel_pipeline = MelSpectrogramPipeline(config.mel)
 
     return FMADataModule(
-        metadata_dir=config.train.metadata_dir,
-        audio_dir=config.train.audio_dir,
+        metadata_dir=config.data.metadata_dir,
+        audio_dir=config.data.audio_dir,
         sample_rate=config.mel.sr,
         num_segments=config.mel.num_segments,
         transform=lambda x: {

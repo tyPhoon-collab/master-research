@@ -2,10 +2,13 @@ from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
-class TrainConfig:
+class DataConfig:
     metadata_dir: str = "./data/FMA/fma_metadata"
     audio_dir: str = "./data/FMA/fma_small"
 
+
+@dataclass(frozen=True)
+class TrainConfig:
     batch_size: int = 2
     epochs: int = 1
     lr: float = 1e-4
@@ -45,6 +48,7 @@ class Config:
     # Literal["train_unet", "train_diffwave", "infer_unet", "infer"]
     mode: str = "train_unet"
 
+    data: DataConfig = field(default_factory=DataConfig)
     train: TrainConfig = field(default_factory=TrainConfig)
     infer: InferConfig = field(default_factory=InferConfig)
     mel: MelConfig = field(default_factory=MelConfig)

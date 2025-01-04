@@ -24,5 +24,10 @@ lightning_logs
 # Virtual environments
 .venv
 
-# Private config
-conf/train/neptune.yaml
+# Config
+conf/train/*
+!conf/train/default.yaml
+
+conf/data/*
+!conf/data/small.yaml
+!conf/data/medium.yaml

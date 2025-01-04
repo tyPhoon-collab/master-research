@@ -1,4 +1,5 @@
 defaults:
+  - data: small
   - train: default
   - infer: default
   - mel: default

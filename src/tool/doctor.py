@@ -103,8 +103,8 @@ def doctor(c: Config):
     pipe_mel = MelSpectrogramPipeline(c.mel)
 
     dataset = FMADataset(
-        metadata_dir=c.train.metadata_dir,
-        audio_dir=c.train.audio_dir,
+        metadata_dir=c.data.metadata_dir,
+        audio_dir=c.data.audio_dir,
         sample_rate=c.mel.sr,
         transform=lambda x: {
             "x": x,
