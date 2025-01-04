@@ -5,43 +5,57 @@ from omegaconf import DictConfig, OmegaConf
 
 from tool.config import Config, Mode
 
+_MODE_REGISTRY: dict[Mode, Callable[[Config], None]] = {}
 
-class _Handler:
-    @staticmethod
-    def train_unet(cfg: Config):
-        from tool.train import train_unet
 
-        train_unet(cfg)
+def register_mode(mode: Mode):
+    def decorator(func: Callable[[Config], None]):
+        _MODE_REGISTRY[mode] = func
+        return func
 
-    @staticmethod
-    def train_diffwave(cfg: Config):
-        from tool.train import train_diffwave
+    return decorator
 
-        train_diffwave(cfg)
 
-    @staticmethod
-    def infer_unet(cfg: Config):
-        from tool.inference import inference_unet
+@register_mode("train_unet")
+def train_unet(cfg: Config):
+    from tool.train import train_unet
 
-        inference_unet(cfg)
+    train_unet(cfg)
 
-    @staticmethod
-    def infer(cfg: Config):
-        from tool.inference import inference
 
-        inference(cfg)
+@register_mode("train_diffwave")
+def train_diffwave(cfg: Config):
+    from tool.train import train_diffwave
 
-    @staticmethod
-    def doctor(cfg: Config):
-        from tool.doctor import doctor
+    train_diffwave(cfg)
 
-        doctor(cfg)
 
-    @staticmethod
-    def clean(_):
-        from tool.clean import clean
+@register_mode("infer_unet")
+def infer_unet(cfg: Config):
+    from tool.inference import inference_unet
 
-        clean()
+    inference_unet(cfg)
+
+
+@register_mode("infer")
+def infer(cfg: Config):
+    from tool.inference import inference
+
+    inference(cfg)
+
+
+@register_mode("doctor")
+def doctor(cfg: Config):
+    from tool.doctor import doctor
+
+    doctor(cfg)
+
+
+@register_mode("clean")
+def clean(_):
+    from tool.clean import clean
+
+    clean()
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
@@ -49,16 +63,11 @@ def main(cfg: DictConfig):
     container = OmegaConf.to_container(cfg, resolve=True)
     c = Config(**container)  # type: ignore
 
-    mode_methods: dict[Mode, Callable[[Config], None]] = {
-        "train_unet": _Handler.train_unet,
-        "train_diffwave": _Handler.train_diffwave,
-        "infer_unet": _Handler.infer_unet,
-        "infer": _Handler.infer,
-        "doctor": _Handler.doctor,
-        "clean": _Handler.clean,
-    }
-
-    mode_methods[c.mode](c)
+    mode_function = _MODE_REGISTRY.get(c.mode)
+    if mode_function:
+        mode_function(c)
+    else:
+        raise NotImplementedError(f'Mode "{c.mode}"\'s function is not implemented.')
 
 
 if __name__ == "__main__":

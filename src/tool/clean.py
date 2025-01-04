@@ -26,10 +26,10 @@ def delete_folder(folder_path):
         console.print(f"Error deleting '{folder_path}': {e}", style="red")
 
 
-def find_pycache_folders():
+def find_pycache_folders(parent_folder: str):
     return [
         os.path.join(root, "__pycache__")
-        for root, dirs, _ in os.walk("src")
+        for root, dirs, _ in os.walk(parent_folder)
         if "__pycache__" in dirs
     ]
 
@@ -40,7 +40,8 @@ def clean():
         "lightning_logs",
         "outputs",
         "src/master.egg-info",
-        *find_pycache_folders(),
+        *find_pycache_folders("src"),
+        *find_pycache_folders("tests"),
     ]
 
     console.print("Starting cleaning process...")
