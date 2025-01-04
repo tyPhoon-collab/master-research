@@ -1,8 +1,7 @@
 from dataclasses import field
-from pathlib import Path
 from typing import Literal
 
-from pydantic import DirectoryPath, FilePath, PositiveFloat, PositiveInt
+from pydantic import PositiveFloat, PositiveInt
 from pydantic.dataclasses import dataclass
 
 Mode = Literal["train_unet", "train_diffwave", "infer_unet", "infer", "doctor", "clean"]
@@ -10,8 +9,8 @@ Mode = Literal["train_unet", "train_diffwave", "infer_unet", "infer", "doctor", 
 
 @dataclass(frozen=True)
 class DataConfig:
-    metadata_dir: DirectoryPath = field(default=Path("./data/FMA/fma_metadata"))
-    audio_dir: DirectoryPath = field(default=Path("./data/FMA/fma_small"))
+    metadata_dir: str = "./data/FMA/fma_metadata"
+    audio_dir: str = "./data/FMA/fma_small"
 
 
 @dataclass(frozen=True)
@@ -34,7 +33,7 @@ class TrainConfig:
 
 @dataclass(frozen=True)
 class InferConfig:
-    checkpoint_path: FilePath | None = None
+    checkpoint_path: str | None = None
     callbacks: list[dict] | None = None
 
 

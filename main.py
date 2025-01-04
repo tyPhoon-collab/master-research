@@ -1,5 +1,4 @@
 from collections.abc import Callable
-from typing import Any
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
@@ -47,8 +46,8 @@ class _Handler:
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
-    container: Any = OmegaConf.to_container(cfg, resolve=True)
-    c = Config(**container)
+    container = OmegaConf.to_container(cfg, resolve=True)
+    c = Config(**container)  # type: ignore
 
     mode_methods: dict[Mode, Callable[[Config], None]] = {
         "train_unet": _Handler.train_unet,
