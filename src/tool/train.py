@@ -39,17 +39,12 @@ def train_diffwave(c: Config):
 
 def _train(c: Config, datamodule, model):
     import lightning as L
-    from hydra.utils import instantiate
     from lightning.pytorch.loggers import NeptuneLogger
 
     ct = c.train
 
-    trainer_logger = (
-        instantiate(ct.trainer_logger) if ct.trainer_logger is not None else None
-    )
-    callbacks = (
-        [instantiate(callback) for callback in ct.callbacks] if ct.callbacks else None
-    )
+    trainer_logger = ct.trainer_logger_object
+    callbacks = ct.callbacks_objects
 
     logger.info(f"Trainer logger: {trainer_logger}")
     logger.info(f"Callbacks: {[type(callback) for callback in (callbacks or [])]}")

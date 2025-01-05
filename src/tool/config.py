@@ -1,10 +1,21 @@
 from dataclasses import field
-from typing import Literal
+from datetime import datetime
+from functools import cached_property
+from typing import Any, Literal
 
+from hydra.utils import instantiate
 from pydantic import PositiveFloat, PositiveInt
 from pydantic.dataclasses import dataclass
 
-Mode = Literal["train_unet", "train_diffwave", "infer_unet", "infer", "doctor", "clean"]
+Mode = Literal[
+    "train_unet",
+    "train_diffwave",
+    "infer_unet",
+    "infer_diffwave",
+    "infer",
+    "doctor",
+    "clean",
+]
 
 
 @dataclass(frozen=True)
@@ -23,18 +34,60 @@ class TrainConfig:
 
     profiler: str | None = None
 
+    trainer_logger: dict | None = None
+    callbacks: list[dict] | None = None
+
     # debug
     fast_dev_run: bool = False
 
-    # instantiate
-    trainer_logger: dict | None = None
-    callbacks: list[dict] | None = None
+    @cached_property
+    def criterion_object(self) -> Any | None:
+        if self.criterion is None:
+            return None
+
+        return instantiate(self.criterion)
+
+    @cached_property
+    def trainer_logger_object(self) -> Any | None:
+        if self.trainer_logger is None:
+            return None
+
+        return instantiate(self.trainer_logger)
+
+    @cached_property
+    def callbacks_objects(self) -> list[Any] | None:
+        if self.callbacks is None:
+            return None
+
+        callbacks = [instantiate(callback) for callback in self.callbacks]
+
+        return callbacks
 
 
 @dataclass(frozen=True)
 class InferConfig:
     checkpoint_path: str | None = None
     callbacks: list[dict] | None = None
+    output_dir: str = "./output"
+
+    @cached_property
+    def save_dir(self) -> str:
+        current_datetime = datetime.now()
+        return f"{self.output_dir}/{current_datetime:%Y%m%d_%H%M%S}"
+
+    @cached_property
+    def callbacks_objects(self) -> list[Any] | None:
+        if self.callbacks is None:
+            return None
+
+        from music_controlnet.module.inference_callbacks import StoreDirectory
+
+        callbacks = [instantiate(callback) for callback in self.callbacks]
+        for callback in callbacks or []:
+            if isinstance(callback, StoreDirectory):
+                callback.set_dir(self.save_dir)
+
+        return callbacks
 
 
 @dataclass(frozen=True)
@@ -47,6 +100,10 @@ class MelConfig:
     n_mels: PositiveInt = 128
     top_db: PositiveInt = 80
     num_segments: PositiveInt = 3
+
+    @cached_property
+    def n_stft(self) -> int:
+        return self.n_fft // 2 + 1
 
 
 @dataclass(frozen=True)

@@ -69,6 +69,7 @@ class DiffWaveLightning(L.LightningModule):
     def generate(
         self,
         spectrogram: torch.Tensor,
+        hop_length: int = 256,
         inference_scheduler: Any | None = None,
         show_progress: bool = True,
     ):
@@ -77,7 +78,7 @@ class DiffWaveLightning(L.LightningModule):
 
         scheduler = inference_scheduler or self.scheduler
 
-        length = spectrogram.size(-1) * 256
+        length = spectrogram.size(-1) * hop_length
         noise_shape = (1, 1, length)
         waveform = torch.randn(noise_shape, device=self.device)
 

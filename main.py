@@ -37,6 +37,13 @@ def infer_unet(cfg: Config):
     inference_unet(cfg)
 
 
+@register_mode("infer_diffwave")
+def infer_diffwave(cfg: Config):
+    from tool.inference import inference_diffwave
+
+    inference_diffwave(cfg)
+
+
 @register_mode("infer")
 def infer(cfg: Config):
     from tool.inference import inference

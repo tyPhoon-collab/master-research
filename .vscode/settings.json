@@ -10,6 +10,7 @@
         "hyperparams",
         "imshow",
         "keepdim",
+        "lamdba",
         "librosa",
         "mels",
         "ndarray",

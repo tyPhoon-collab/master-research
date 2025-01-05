@@ -73,7 +73,7 @@ class InverseMelSpectrogramPipeline(torch.nn.Module):
             Lambda(lambda mel: mel / 2 * c.top_db),
             DBToAmplitude(),
             InverseMelScale(
-                n_stft=c.n_fft // 2 + 1,
+                n_stft=c.n_stft,
                 n_mels=c.n_mels,
                 sample_rate=c.sr,
             ),

@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from typing import Any, Dict, Literal
 
 import lightning as L
@@ -12,8 +11,6 @@ from music_controlnet.module.inference_callbacks import (
     ComposeInferenceCallback,
     InferenceCallback,
 )
-
-PostPipeline = Callable[[torch.Tensor], torch.Tensor] | torch.nn.Module
 
 
 class UNetLightning(L.LightningModule):
@@ -117,7 +114,6 @@ class UNetLightning(L.LightningModule):
         callbacks: list[InferenceCallback] | None = None,
         show_progress: bool = True,
         inference_scheduler: Any | None = None,
-        post_pipeline: PostPipeline | None = None,
     ) -> torch.Tensor:
         training = self.training
         self.eval()
@@ -128,9 +124,6 @@ class UNetLightning(L.LightningModule):
 
         scheduler = inference_scheduler or self.scheduler
         scheduler.set_timesteps(timesteps)
-
-        if isinstance(post_pipeline, torch.nn.Module):
-            post_pipeline = post_pipeline.to(self.device)
 
         callback.on_inference_start()
 
@@ -147,9 +140,6 @@ class UNetLightning(L.LightningModule):
             sample = scheduler.step(noise_pred, int(t.item()), sample).prev_sample  # type: ignore
 
             callback.on_timestep(int(t.item()), sample)
-
-        if post_pipeline:
-            sample = post_pipeline(sample)
 
         callback.on_inference_end(sample)
 

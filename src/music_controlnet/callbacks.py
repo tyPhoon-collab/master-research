@@ -5,7 +5,7 @@ from music_controlnet.module.unet import UNetLightning
 from tool.plot import fig_to_pil_image, plot_spectrogram
 
 
-class SimpleUNetNeptuneLoggerCallback(NeptuneLoggerCallback):
+class UNetNeptuneLoggerCallback(NeptuneLoggerCallback):
     def __init__(self, timesteps: int = 1000, n_mels: int = 80, length: int = 2560):
         super().__init__()
         self.timesteps = timesteps
