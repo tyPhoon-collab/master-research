@@ -22,8 +22,6 @@ class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
 
         c = MelConfig(
             hop_length=self.hop_length,
-            num_segments=1,
-            fixed_length=2576,
         )
 
         self.pipe_mel = MelSpectrogramPipeline(c).to(pl_module.device)
@@ -35,28 +33,31 @@ class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
         model: DiffWaveLightning = pl_module  # type: ignore
 
         for path in glob.glob(f"{self.test_dir}/*.mp3"):
-            y, sr = torchaudio.load(path)
-            y = y.to(model.device)
+            self._append(model, path)
 
-            waveform = self.pipe_waveform(y)
-            mel = self.pipe_mel(y)
+    def _append(self, model: DiffWaveLightning, path: str):
+        y, sr = torchaudio.load(path)
+        y = y.to(model.device)
 
-            waveform_hat = model.generate(
-                mel,
-                hop_length=self.hop_length,
-            )
-            mel_hat = self.pipe_mel(waveform_hat)
+        waveform = self.pipe_waveform(y)
+        mel = self.pipe_mel(y)
 
-            fig = plot_multiple(
-                [
-                    plot_waveform(waveform.squeeze().cpu().numpy()),
-                    plot_waveform(waveform_hat.squeeze().cpu().numpy()),
-                    plot_spectrogram(mel.squeeze().cpu().numpy()),
-                    plot_spectrogram(mel_hat.squeeze().cpu().numpy()),
-                ]
-            )
-            img = fig_to_pil_image(fig)
+        waveform_hat = model.generate(
+            mel,
+            hop_length=self.hop_length,
+        )
+        mel_hat = self.pipe_mel(waveform_hat)
 
-            self.run["train/sample"].append(img)
+        fig = plot_multiple(
+            [
+                plot_waveform(waveform.squeeze().cpu().numpy()),
+                plot_waveform(waveform_hat.squeeze().cpu().numpy()),
+                plot_spectrogram(mel.squeeze().cpu().numpy()),
+                plot_spectrogram(mel_hat.squeeze().cpu().numpy()),
+            ]
+        )
+        img = fig_to_pil_image(fig)
 
-            img.close()
+        self.run["train/sample"].append(img)
+
+        img.close()

@@ -46,7 +46,7 @@ class FMADataset(Dataset[FMADatasetReturn]):
         metadata_dir: str,
         audio_dir: str,
         sample_rate: int,
-        num_segments: int = 1,
+        n_segments: int = 1,
         transform: Transform | None = None,
     ):
         super().__init__()
@@ -58,12 +58,12 @@ class FMADataset(Dataset[FMADatasetReturn]):
             metadata_dir=metadata_dir,
             audio_dir=audio_dir,
         )
-        self.splitter = Splitter(num_segments)
+        self.splitter = Splitter(n_segments)
         self.resampler = Resampler(sample_rate)
 
     def __len__(self):
-        return len(self.metadata) * self.splitter.num_segments
-        # return 3 * self.splitter.num_segments
+        # return len(self.metadata) * self.splitter.n_segments
+        return 3 * self.splitter.n_segments
 
     def __getitem__(self, index) -> FMADatasetReturn:
         id_index = self.splitter.get_id_index(index)
@@ -118,16 +118,16 @@ class Resampler:
 
 
 class Splitter:
-    def __init__(self, num_segments: int):
-        self.num_segments = num_segments
+    def __init__(self, n_segments: int):
+        self.n_segments = n_segments
 
     def get_id_index(self, id: int) -> int:
-        return id // self.num_segments
+        return id // self.n_segments
 
     def __call__(self, waveform: torch.Tensor, index: int) -> torch.Tensor:
-        segment_index = index % self.num_segments
+        segment_index = index % self.n_segments
 
-        length = waveform.size(-1) // self.num_segments
+        length = waveform.size(-1) // self.n_segments
 
         start = segment_index * length
         end = start + length

@@ -10,7 +10,7 @@ def build_unet_datamodule(config: Config) -> FMADataModule:
         metadata_dir=config.data.metadata_dir,
         audio_dir=config.data.audio_dir,
         sample_rate=config.mel.sr,
-        num_segments=config.mel.num_segments,
+        n_segments=config.mel.n_segments,
         transform=lambda x: {
             "mel": mel_pipeline(x),
         },
@@ -26,7 +26,7 @@ def build_diffwave_datamodule(config: Config) -> FMADataModule:
         metadata_dir=config.data.metadata_dir,
         audio_dir=config.data.audio_dir,
         sample_rate=config.mel.sr,
-        num_segments=config.mel.num_segments,
+        n_segments=config.mel.n_segments,
         transform=lambda x: {
             "waveform": waveform_pipeline(x),
             "mel": mel_pipeline(x),

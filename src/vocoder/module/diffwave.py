@@ -37,7 +37,10 @@ class DiffWaveLightning(L.LightningModule):
         )
 
     def forward(
-        self, x: torch.Tensor, timestep: torch.Tensor, spectrogram: torch.Tensor
+        self,
+        x: torch.Tensor,
+        timestep: torch.Tensor,
+        spectrogram: torch.Tensor,
     ):
         # drop channel dimension
         return self.model(x.squeeze(1), spectrogram.squeeze(1), timestep)

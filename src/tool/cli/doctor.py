@@ -111,7 +111,7 @@ def doctor(c: Config):
             "waveform": pipe_waveform(x),
             "mel": pipe_mel(x),
         },
-        num_segments=c.mel.num_segments,
+        n_segments=c.mel.n_segments,
     )
 
     dataloader = torch.utils.data.DataLoader(

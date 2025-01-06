@@ -54,8 +54,8 @@ def _train(c: Config, datamodule, model):
     if ct.enable_default_callbacks:
         callbacks.extend(default_callbacks)
 
-    logger.info(f"Trainer logger: {trainer_logger}")
-    logger.info(f"Callbacks: {[type(callback) for callback in callbacks]}")
+    logger.info(f"Trainer logger: {trainer_logger.__class__.__name__}")
+    logger.info(f"Callbacks: {[callback.__class__.__name__ for callback in callbacks]}")
 
     trainer = L.Trainer(
         max_epochs=ct.epochs,

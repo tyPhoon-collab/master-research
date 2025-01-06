@@ -12,7 +12,7 @@ class FMADataModule(L.LightningDataModule):
         metadata_dir: str,
         audio_dir: str,
         sample_rate: int,
-        num_segments: int,
+        n_segments: int,
         transform: Transform | None,
         batch_size: int,
         val_split: float = 0.2,
@@ -21,7 +21,7 @@ class FMADataModule(L.LightningDataModule):
         self.metadata_dir = metadata_dir
         self.audio_dir = audio_dir
         self.sample_rate = sample_rate
-        self.num_segments = num_segments
+        self.n_segments = n_segments
         self.batch_size = batch_size
         self.transform = transform
         self.val_split = val_split
@@ -34,7 +34,7 @@ class FMADataModule(L.LightningDataModule):
             metadata_dir=self.metadata_dir,
             audio_dir=self.audio_dir,
             sample_rate=self.sample_rate,
-            num_segments=self.num_segments,
+            n_segments=self.n_segments,
             transform=self.transform,
         )
 

@@ -18,16 +18,10 @@ Mode = Literal[
 ]
 
 
-def _instantiate(config: dict | None) -> Any:
+def _instantiate_list(config: list[dict] | None) -> list[Any] | None:
     if config is None:
         return None
-    return instantiate(config)
-
-
-def _instantiate_list(config: list | None) -> list[Any] | None:
-    if config is None:
-        return None
-    return [_instantiate(c) for c in config]
+    return [instantiate(c) for c in config]
 
 
 @dataclass(frozen=True)
@@ -56,11 +50,11 @@ class TrainConfig:
 
     @cached_property
     def criterion_object(self) -> Any | None:
-        return _instantiate(self.criterion)
+        return instantiate(self.criterion)
 
     @cached_property
     def trainer_logger_object(self) -> Any | None:
-        return _instantiate(self.trainer_logger)
+        return instantiate(self.trainer_logger)
 
     @cached_property
     def callbacks_objects(self) -> list[Any] | None:
@@ -84,14 +78,33 @@ class MelConfig:
     n_fft: PositiveInt = 2048
     win_length: PositiveInt = 2048
     hop_length: PositiveInt = 256
-    fixed_length: PositiveInt = 864
     n_mels: PositiveInt = 128
     top_db: PositiveInt = 80
-    num_segments: PositiveInt = 3
+    n_segments: PositiveInt = 3
+    audio_duration: PositiveInt = 30
 
     @cached_property
     def n_stft(self) -> int:
         return self.n_fft // 2 + 1
+
+    @cached_property
+    def fixed_mel_length(self) -> int:
+        """
+        モデルの入力は8や16の倍数である必要がある場合がある
+        最も近い16の倍数になるように調整する
+        """
+        from tool.functions import nearest_multiple
+
+        duration = self.audio_duration // self.n_segments
+        frame_length = self.sr * duration
+
+        mel_estimated_length = frame_length // self.hop_length
+        fixed_length = nearest_multiple(mel_estimated_length, multiple=16)
+        return fixed_length
+
+    @cached_property
+    def fixed_length(self) -> int:
+        return self.fixed_mel_length * self.hop_length
 
 
 @dataclass(frozen=True)
