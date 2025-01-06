@@ -7,8 +7,7 @@ wheels/
 *.egg-info
 
 # Data
-data/ckpt/*
-data/audio/*
+data/*
 output/*
 notebooks
 

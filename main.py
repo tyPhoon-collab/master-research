@@ -18,49 +18,49 @@ def register_mode(mode: Mode):
 
 @register_mode("train_unet")
 def train_unet(cfg: Config):
-    from tool.train import train_unet
+    from tool.cli.train import train_unet
 
     train_unet(cfg)
 
 
 @register_mode("train_diffwave")
 def train_diffwave(cfg: Config):
-    from tool.train import train_diffwave
+    from tool.cli.train import train_diffwave
 
     train_diffwave(cfg)
 
 
 @register_mode("infer_unet")
 def infer_unet(cfg: Config):
-    from tool.inference import inference_unet
+    from tool.cli.infer import inference_unet
 
     inference_unet(cfg)
 
 
 @register_mode("infer_diffwave")
 def infer_diffwave(cfg: Config):
-    from tool.inference import inference_diffwave
+    from tool.cli.infer import inference_diffwave
 
     inference_diffwave(cfg)
 
 
 @register_mode("infer")
 def infer(cfg: Config):
-    from tool.inference import inference
+    from tool.cli.infer import inference
 
     inference(cfg)
 
 
 @register_mode("doctor")
 def doctor(cfg: Config):
-    from tool.doctor import doctor
+    from tool.cli.doctor import doctor
 
     doctor(cfg)
 
 
 @register_mode("clean")
 def clean(_):
-    from tool.clean import clean
+    from tool.cli.clean import clean
 
     clean()
 

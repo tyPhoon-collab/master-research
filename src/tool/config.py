@@ -18,6 +18,18 @@ Mode = Literal[
 ]
 
 
+def _instantiate(config: dict | None) -> Any:
+    if config is None:
+        return None
+    return instantiate(config)
+
+
+def _instantiate_list(config: list | None) -> list[Any] | None:
+    if config is None:
+        return None
+    return [_instantiate(c) for c in config]
+
+
 @dataclass(frozen=True)
 class DataConfig:
     metadata_dir: str = "./data/FMA/fma_metadata"
@@ -34,6 +46,8 @@ class TrainConfig:
 
     profiler: str | None = None
 
+    enable_default_callbacks: bool = True
+
     trainer_logger: dict | None = None
     callbacks: list[dict] | None = None
 
@@ -42,52 +56,26 @@ class TrainConfig:
 
     @cached_property
     def criterion_object(self) -> Any | None:
-        if self.criterion is None:
-            return None
-
-        return instantiate(self.criterion)
+        return _instantiate(self.criterion)
 
     @cached_property
     def trainer_logger_object(self) -> Any | None:
-        if self.trainer_logger is None:
-            return None
-
-        return instantiate(self.trainer_logger)
+        return _instantiate(self.trainer_logger)
 
     @cached_property
     def callbacks_objects(self) -> list[Any] | None:
-        if self.callbacks is None:
-            return None
-
-        callbacks = [instantiate(callback) for callback in self.callbacks]
-
-        return callbacks
+        return _instantiate_list(self.callbacks)
 
 
 @dataclass(frozen=True)
 class InferConfig:
     checkpoint_path: str | None = None
-    callbacks: list[dict] | None = None
     output_dir: str = "./output"
 
     @cached_property
     def save_dir(self) -> str:
         current_datetime = datetime.now()
         return f"{self.output_dir}/{current_datetime:%Y%m%d_%H%M%S}"
-
-    @cached_property
-    def callbacks_objects(self) -> list[Any] | None:
-        if self.callbacks is None:
-            return None
-
-        from music_controlnet.module.inference_callbacks import StoreDirectory
-
-        callbacks = [instantiate(callback) for callback in self.callbacks]
-        for callback in callbacks or []:
-            if isinstance(callback, StoreDirectory):
-                callback.set_dir(self.save_dir)
-
-        return callbacks
 
 
 @dataclass(frozen=True)

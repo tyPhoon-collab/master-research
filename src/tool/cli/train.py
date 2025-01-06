@@ -1,5 +1,6 @@
 from logging import getLogger
 
+from callback.optimizer_hooks import ScheduleFreeOptimizerCallback
 from tool.config import Config
 
 logger = getLogger(__name__)
@@ -43,11 +44,18 @@ def _train(c: Config, datamodule, model):
 
     ct = c.train
 
+    default_callbacks = [
+        ScheduleFreeOptimizerCallback(),
+    ]
+
     trainer_logger = ct.trainer_logger_object
-    callbacks = ct.callbacks_objects
+    callbacks = ct.callbacks_objects or []
+
+    if ct.enable_default_callbacks:
+        callbacks.extend(default_callbacks)
 
     logger.info(f"Trainer logger: {trainer_logger}")
-    logger.info(f"Callbacks: {[type(callback) for callback in (callbacks or [])]}")
+    logger.info(f"Callbacks: {[type(callback) for callback in callbacks]}")
 
     trainer = L.Trainer(
         max_epochs=ct.epochs,

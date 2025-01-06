@@ -5,7 +5,6 @@ import torch
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from diffwave.model import DiffWave
 from omegaconf import DictConfig
-from torch.optim import Adam
 from tqdm import tqdm
 
 
@@ -62,8 +61,12 @@ class DiffWaveLightning(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = Adam(self.parameters(), lr=self.lr)  # TODO: consider decay
-        return optimizer
+        from schedulefree import RAdamScheduleFree
+
+        self.optimizer = RAdamScheduleFree(self.parameters(), lr=self.lr)
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+
+        return self.optimizer
 
     @torch.inference_mode()
     def generate(

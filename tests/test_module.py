@@ -1,7 +1,7 @@
 def test_unet():
     import torch
 
-    from music_controlnet.module.unet import UNetLightning
+    from music_controlnet.unet import UNetLightning
 
     device = "cuda"
     model = UNetLightning().to(device)
@@ -23,7 +23,7 @@ def test_unet():
 def test_unet_generate():
     import torch
 
-    from music_controlnet.module.unet import UNetLightning
+    from music_controlnet.unet import UNetLightning
 
     device = "cuda"
     model = UNetLightning().to(device)
@@ -41,7 +41,7 @@ def test_unet_generate():
 def test_diffwave():
     import torch
 
-    from vocoder.module.diffwave import DiffWaveLightning
+    from vocoder.diffwave import DiffWaveLightning
 
     device = "cuda"
     model = DiffWaveLightning(n_mels=128).to(device)
@@ -58,7 +58,7 @@ def test_diffwave():
 def test_diffwave_generate():
     import torch
 
-    from vocoder.module.diffwave import DiffWaveLightning
+    from vocoder.diffwave import DiffWaveLightning
 
     device = "cuda"
     model = DiffWaveLightning(n_mels=128).to(device)

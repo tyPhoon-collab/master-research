@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal
+from typing import Any, Callable
 
 import lightning as L
 import torch
@@ -7,10 +7,6 @@ from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from tqdm import tqdm
 
 from fma.metadata import NUM_GENRES, PADDING_INDEX
-from music_controlnet.module.inference_callbacks import (
-    ComposeInferenceCallback,
-    InferenceCallback,
-)
 
 
 class UNetLightning(L.LightningModule):
@@ -84,23 +80,6 @@ class UNetLightning(L.LightningModule):
 
         return self.optimizer
 
-    # optimizer hooks
-    def on_train_epoch_start(self):
-        self._set_optimizer_mode("train")
-
-    def on_save_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
-        self._set_optimizer_mode("eval")
-
-    def on_load_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
-        self._set_optimizer_mode("train")
-
-    def _set_optimizer_mode(self, mode: Literal["train", "eval"]) -> None:
-        # ScheduleFreeなOptimizerはtrain/evalを切り替える必要がある場合がある
-        if hasattr(self, "optimizer") and callable(getattr(self.optimizer, mode, None)):
-            getattr(self.optimizer, mode)()
-
-    # end optimizer hooks
-
     def forward(self, x: torch.Tensor, timestep: torch.Tensor, genres: torch.Tensor):
         return self.model(x, timestep, class_labels=genres)
 
@@ -111,7 +90,7 @@ class UNetLightning(L.LightningModule):
         length: int,
         genres: torch.Tensor | None = None,
         timesteps: int = 1000,
-        callbacks: list[InferenceCallback] | None = None,
+        on_timesteps: Callable[[int, torch.Tensor], None] | None = None,
         show_progress: bool = True,
         inference_scheduler: Any | None = None,
     ) -> torch.Tensor:
@@ -120,16 +99,14 @@ class UNetLightning(L.LightningModule):
 
         noise_shape = (1, 1, n_mels, length)
 
-        callback = ComposeInferenceCallback(callbacks)
-
         scheduler = inference_scheduler or self.scheduler
         scheduler.set_timesteps(timesteps)
-
-        callback.on_inference_start()
 
         # Hip-Hop: 21
         genres = genres or torch.tensor([[21]], device=self.device)
         sample = torch.randn(noise_shape, device=self.device)
+
+        on_timesteps = on_timesteps or (lambda t, x: None)
 
         for t in tqdm(
             scheduler.timesteps,
@@ -139,9 +116,7 @@ class UNetLightning(L.LightningModule):
             noise_pred = self.model(sample, t, genres).sample
             sample = scheduler.step(noise_pred, int(t.item()), sample).prev_sample  # type: ignore
 
-            callback.on_timestep(int(t.item()), sample)
-
-        callback.on_inference_end(sample)
+            on_timesteps(int(t.item()), sample)
 
         if training:
             self.train()

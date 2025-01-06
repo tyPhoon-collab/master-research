@@ -1,43 +1,54 @@
 import os
 
-import numpy as np
 import torch
+import torchaudio
 
-from music_controlnet.module.unet import UNetLightning
 from tool.config import Config
 from tool.pipeline import InverseMelSpectrogramPipeline, MelSpectrogramPipeline
-from tool.plot import plot_waveform
-from vocoder.module.diffwave import DiffWaveLightning
 
 
 def inference_unet(cfg: Config) -> torch.Tensor:
+    from music_controlnet.module.unet import UNetLightning
+
     ci = cfg.infer
     cm = cfg.mel
 
     ckpt_path = _check_ckpt_path(ci)
     model = UNetLightning.load_from_checkpoint(ckpt_path)
 
-    return model.generate(
+    mel = model.generate(
         n_mels=cm.n_mels,
         length=cm.fixed_length,
-        callbacks=ci.callbacks_objects,
     )
+
+    _save_spectrogram(ci.save_dir, mel)
+
+    return mel
 
 
 def inference_diffwave(cfg: Config) -> torch.Tensor:
+    from vocoder.module.diffwave import DiffWaveLightning
+
     ci = cfg.infer
     cm = cfg.mel
 
     ckpt_path = _check_ckpt_path(ci)
-    model = DiffWaveLightning.load_from_checkpoint(ckpt_path)
+    model = DiffWaveLightning.load_from_checkpoint(
+        ckpt_path,
+        n_mels=cm.n_mels,
+    )
 
     pipe = MelSpectrogramPipeline(cm).to(model.device)
-    mel = pipe("data/audio/000010.mp3")
+    y, _ = torchaudio.load("data/audio/000010.mp3")
+    y = y.to(model.device)
+    mel = pipe(y)
 
     waveform = model.generate(
         mel,
         hop_length=cm.hop_length,
     )
+
+    _save_waveform(ci.save_dir, waveform)
 
     return waveform
 
@@ -47,10 +58,7 @@ def inference(cfg: Config) -> torch.Tensor:
     pipe = InverseMelSpectrogramPipeline(cfg.mel).to("cuda")
 
     waveform = pipe(mel)
-    _save_waveform(
-        waveform.cpu().squeeze().numpy(),
-        cfg.infer.save_dir,
-    )
+    _save_waveform(cfg.infer.save_dir, waveform)
 
     return waveform
 
@@ -66,9 +74,25 @@ def _check_ckpt_path(ci):
     return ckpt_path
 
 
-def _save_waveform(data: np.ndarray, save_dir: str):
+def _save_waveform(save_dir: str, waveform: torch.Tensor):
     from soundfile import write
+
+    from tool.plot import plot_waveform
+
+    os.makedirs(save_dir, exist_ok=True)
+
+    data = waveform.squeeze().cpu().numpy()
 
     fig = plot_waveform(data)
     fig.write_image(f"{save_dir}/waveform.png")
     write(f"{save_dir}/output.wav", data, 22050)
+
+
+def _save_spectrogram(save_dir: str, mel: torch.Tensor):
+    from tool.plot import plot_spectrogram
+
+    os.makedirs(save_dir, exist_ok=True)
+
+    data = mel.squeeze().cpu().numpy()
+    fig = plot_spectrogram(data)
+    fig.write_image(f"{save_dir}/spectrogram.png")
