@@ -62,8 +62,8 @@ class FMADataset(Dataset[FMADatasetReturn]):
         self.resampler = Resampler(sample_rate)
 
     def __len__(self):
-        # return len(self.metadata) * self.splitter.n_segments
-        return 3 * self.splitter.n_segments
+        return len(self.metadata) * self.splitter.n_segments
+        # return 3 * self.splitter.n_segments
 
     def __getitem__(self, index) -> FMADatasetReturn:
         id_index = self.splitter.get_id_index(index)
