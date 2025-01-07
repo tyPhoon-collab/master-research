@@ -44,15 +44,11 @@ def _train(c: Config, datamodule, model):
 
     ct = c.train
 
-    default_callbacks = [
-        ScheduleFreeOptimizerCallback(),
-    ]
-
     trainer_logger = ct.trainer_logger_object
     callbacks = ct.callbacks_objects or []
 
     if ct.enable_default_callbacks:
-        callbacks.extend(default_callbacks)
+        callbacks.insert(0, ScheduleFreeOptimizerCallback())
 
     logger.info(f"Trainer logger: {trainer_logger.__class__.__name__}")
     logger.info(f"Callbacks: {[callback.__class__.__name__ for callback in callbacks]}")
@@ -69,4 +65,4 @@ def _train(c: Config, datamodule, model):
 
     if isinstance(trainer_logger, NeptuneLogger):
         trainer_logger.log_model_summary(model=model, max_depth=-1)
-        trainer_logger.log_hyperparams(dict(c))  # type: ignore
+        trainer_logger.log_hyperparams(c.model_dump())
