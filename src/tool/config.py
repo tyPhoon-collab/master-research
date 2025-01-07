@@ -4,8 +4,7 @@ from functools import cached_property
 from typing import Any, Literal
 
 from hydra.utils import instantiate
-from pydantic import PositiveFloat, PositiveInt
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel, PositiveFloat, PositiveInt
 
 Mode = Literal[
     "train_unet",
@@ -24,14 +23,12 @@ def _instantiate_list(config: list[dict] | None) -> list[Any] | None:
     return [instantiate(c) for c in config]
 
 
-@dataclass(frozen=True)
-class DataConfig:
+class DataConfig(BaseModel):
     metadata_dir: str = "./data/FMA/fma_metadata"
     audio_dir: str = "./data/FMA/fma_small"
 
 
-@dataclass(frozen=True)
-class TrainConfig:
+class TrainConfig(BaseModel):
     batch_size: PositiveInt = 2
     epochs: PositiveInt = 1
     lr: PositiveFloat = 1e-4
@@ -61,8 +58,7 @@ class TrainConfig:
         return _instantiate_list(self.callbacks)
 
 
-@dataclass(frozen=True)
-class InferConfig:
+class InferConfig(BaseModel):
     checkpoint_path: str | None = None
     output_dir: str = "./output"
 
@@ -72,8 +68,7 @@ class InferConfig:
         return f"{self.output_dir}/{current_datetime:%Y%m%d_%H%M%S}"
 
 
-@dataclass(frozen=True)
-class MelConfig:
+class MelConfig(BaseModel):
     sr: PositiveInt = 22050
     n_fft: PositiveInt = 2048
     win_length: PositiveInt = 2048
@@ -107,8 +102,7 @@ class MelConfig:
         return self.fixed_mel_length * self.hop_length
 
 
-@dataclass(frozen=True)
-class Config:
+class Config(BaseModel):
     mode: Mode = "train_unet"
 
     data: DataConfig = field(default_factory=DataConfig)

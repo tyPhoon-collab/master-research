@@ -71,10 +71,10 @@ def main(cfg: DictConfig):
     c = Config(**container)  # type: ignore
 
     mode_function = _MODE_REGISTRY.get(c.mode)
-    if mode_function:
-        mode_function(c)
-    else:
+    if not mode_function:
         raise NotImplementedError(f'Mode "{c.mode}"\'s function is not implemented.')
+
+    mode_function(c)
 
 
 if __name__ == "__main__":
