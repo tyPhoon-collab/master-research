@@ -1,4 +1,4 @@
-from tool.config import Config, TrainConfig
+from tool.config import Config, DataConfig, TrainConfig
 
 metadata_dir = "E:/Dataset/FMA/fma_metadata"
 audio_dir = "E:/Dataset/FMA/fma_small"
@@ -40,10 +40,12 @@ def test_datamodule():
 
     c = Config(
         train=TrainConfig(
+            batch_size=16,
+        ),
+        data=DataConfig(
             metadata_dir=metadata_dir,
             audio_dir=audio_dir,
-            batch_size=16,
-        )
+        ),
     )
 
     datamodule = build_unet_datamodule(c)
