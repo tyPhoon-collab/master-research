@@ -7,8 +7,6 @@ logger = getLogger(__name__)
 
 
 def train_unet(c: Config):
-    from hydra.utils import instantiate
-
     from music_controlnet.module.unet import UNetLightning
     from tool.factory import build_unet_datamodule
 
@@ -16,24 +14,41 @@ def train_unet(c: Config):
 
     datamodule = build_unet_datamodule(c)
 
-    criterion = instantiate(ct.criterion) if ct.criterion is not None else None
-    model = UNetLightning(lr=ct.lr, criterion=criterion)
+    model = UNetLightning(lr=ct.lr, criterion=ct.criterion_object)
 
     _train(c, datamodule, model)
 
 
 def train_diffwave(c: Config):
-    from hydra.utils import instantiate
-
-    from tool.factory import build_diffwave_datamodule
+    from tool.factory import build_vocoder_datamodule
     from vocoder.module.diffwave import DiffWaveLightning
 
     ct = c.train
 
-    datamodule = build_diffwave_datamodule(c)
+    datamodule = build_vocoder_datamodule(c)
 
-    criterion = instantiate(ct.criterion) if ct.criterion is not None else None
-    model = DiffWaveLightning(n_mels=c.mel.n_mels, lr=ct.lr, criterion=criterion)
+    model = DiffWaveLightning(
+        n_mels=c.mel.n_mels,
+        lr=ct.lr,
+        criterion=ct.criterion_object,
+    )
+
+    _train(c, datamodule, model)
+
+
+def train_music_hifi(c: Config):
+    from tool.factory import build_vocoder_datamodule
+    from vocoder.module.music_hifi import MusicHiFiLightning
+
+    ct = c.train
+
+    datamodule = build_vocoder_datamodule(c)
+
+    model = MusicHiFiLightning(
+        lr=ct.lr,
+        sampling_rate=c.mel.sr,
+        n_mels=c.mel.n_mels,
+    )
 
     _train(c, datamodule, model)
 

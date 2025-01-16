@@ -30,6 +30,13 @@ def train_diffwave(cfg: Config):
     train_diffwave(cfg)
 
 
+@register_mode("train_music_hifi")
+def train_music_hifi(cfg: Config):
+    from tool.cli.train import train_music_hifi
+
+    train_music_hifi(cfg)
+
+
 @register_mode("infer_unet")
 def infer_unet(cfg: Config):
     from tool.cli.infer import inference_unet

@@ -1,11 +1,15 @@
+"""
+[descript-audio-codec/dac/model/discriminator.py at main · descriptinc/descript-audio-codec](https://github.com/descriptinc/descript-audio-codec/blob/main/dac/model/discriminator.py)
+
+audiotoolsの依存を削除した実装
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from audiotools import AudioSignal
-from audiotools import ml
-from audiotools import STFTParams
 from einops import rearrange
 from torch.nn.utils import weight_norm
+from torchaudio.transforms import Resample, Spectrogram
 
 
 def WNConv1d(*args, **kwargs):
@@ -78,11 +82,10 @@ class MSD(nn.Module):
         self.conv_post = WNConv1d(1024, 1, 3, 1, padding=1, act=False)
         self.sample_rate = sample_rate
         self.rate = rate
+        self.resample = Resample(sample_rate, sample_rate // rate)
 
     def forward(self, x):
-        x = AudioSignal(x, self.sample_rate)
-        x.resample(self.sample_rate // self.rate)
-        x = x.audio_data
+        x = self.resample(x)
 
         fmap = []
 
@@ -123,10 +126,10 @@ class MRD(nn.Module):
         self.window_length = window_length
         self.hop_factor = hop_factor
         self.sample_rate = sample_rate
-        self.stft_params = STFTParams(
-            window_length=window_length,
+        self.stft = Spectrogram(
+            n_fft=window_length,
             hop_length=int(window_length * hop_factor),
-            match_stride=True,
+            power=None,
         )
 
         n_fft = window_length // 2 + 1
@@ -134,21 +137,25 @@ class MRD(nn.Module):
         self.bands = bands
 
         ch = 32
-        convs = lambda: nn.ModuleList(
+        self.band_convs = nn.ModuleList(
             [
-                WNConv2d(2, ch, (3, 9), (1, 1), padding=(1, 4)),
-                WNConv2d(ch, ch, (3, 9), (1, 2), padding=(1, 4)),
-                WNConv2d(ch, ch, (3, 9), (1, 2), padding=(1, 4)),
-                WNConv2d(ch, ch, (3, 9), (1, 2), padding=(1, 4)),
-                WNConv2d(ch, ch, (3, 3), (1, 1), padding=(1, 1)),
+                nn.ModuleList(
+                    [
+                        WNConv2d(2, ch, (3, 9), (1, 1), padding=(1, 4)),
+                        WNConv2d(ch, ch, (3, 9), (1, 2), padding=(1, 4)),
+                        WNConv2d(ch, ch, (3, 9), (1, 2), padding=(1, 4)),
+                        WNConv2d(ch, ch, (3, 9), (1, 2), padding=(1, 4)),
+                        WNConv2d(ch, ch, (3, 3), (1, 1), padding=(1, 1)),
+                    ]
+                )
+                for _ in range(len(self.bands))
             ]
         )
-        self.band_convs = nn.ModuleList([convs() for _ in range(len(self.bands))])
+
         self.conv_post = WNConv2d(ch, 1, (3, 3), (1, 1), padding=(1, 1), act=False)
 
     def spectrogram(self, x):
-        x = AudioSignal(x, self.sample_rate, stft_params=self.stft_params)
-        x = torch.view_as_real(x.stft())
+        x = torch.view_as_real(self.stft(x))
         x = rearrange(x, "b 1 f t c -> (b 1) c t f")
         # Split into bands
         x_bands = [x[..., b[0] : b[1]] for b in self.bands]
@@ -172,7 +179,7 @@ class MRD(nn.Module):
         return fmap
 
 
-class Discriminator(ml.BaseModel):
+class Discriminator(nn.Module):
     def __init__(
         self,
         rates: list = [],

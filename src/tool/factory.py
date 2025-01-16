@@ -18,7 +18,7 @@ def build_unet_datamodule(config: Config) -> FMADataModule:
     )
 
 
-def build_diffwave_datamodule(config: Config) -> FMADataModule:
+def build_vocoder_datamodule(config: Config) -> FMADataModule:
     waveform_pipeline = WaveformPipeline(config.mel)
     mel_pipeline = MelSpectrogramPipeline(config.mel)
 

@@ -92,6 +92,14 @@ wheels = [
 ]
 
 [[package]]
+name = "alias-free-torch"
+version = "0.0.6"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b8/8e/8dd4d6de0fbba9d8f10d7b655be0578d5bda6e4db425210c265b0ea6c804/alias_free_torch-0.0.6-py3-none-any.whl", hash = "sha256:3a77e81147caf00f0b05483498e672ad3623b05800b82ace163d7adecac8b033", size = 9659 },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -541,6 +549,15 @@ dependencies = [
     { name = "tqdm" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/03/c2/5ae6aeb77dfd30cf058971a40b201bb03f3c5ea3ff397a148641a1ae177e/diffwave-0.1.7.tar.gz", hash = "sha256:92d7828cff2bd5f3ea11672b67bb820ebfc8cecaeb75f4862e1fa2d4435569c5", size = 12274 }
+
+[[package]]
+name = "einops"
+version = "0.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/79/ca/9f5dcb8bead39959454c3912266bedc4c315839cee0e0ca9f4328f4588c1/einops-0.8.0.tar.gz", hash = "sha256:63486517fed345712a8385c100cb279108d9d47e6ae59099b07657e983deae85", size = 58861 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/44/5a/f0b9ad6c0a9017e62d4735daaeb11ba3b6c009d69a26141b258cd37b5588/einops-0.8.0-py3-none-any.whl", hash = "sha256:9572fb63046264a862693b0a87088af3bdc8c068fde03de63453cbbde245465f", size = 43223 },
+]
 
 [[package]]
 name = "executing"
@@ -1333,8 +1350,10 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "accelerate" },
+    { name = "alias-free-torch" },
     { name = "diffusers" },
     { name = "diffwave" },
+    { name = "einops" },
     { name = "hydra-core" },
     { name = "ipykernel" },
     { name = "ipywidgets" },
@@ -1364,8 +1383,10 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "accelerate", specifier = ">=1.2.0" },
+    { name = "alias-free-torch", specifier = ">=0.0.6" },
     { name = "diffusers", specifier = ">=0.31.0" },
     { name = "diffwave", specifier = ">=0.1.7" },
+    { name = "einops", specifier = ">=0.8.0" },
     { name = "hydra-core", specifier = ">=1.3.2" },
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "ipywidgets", specifier = ">=8.1.5" },

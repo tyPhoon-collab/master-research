@@ -9,6 +9,7 @@ from pydantic import BaseModel, PositiveFloat, PositiveInt
 Mode = Literal[
     "train_unet",
     "train_diffwave",
+    "train_music_hifi",
     "infer_unet",
     "infer_diffwave",
     "infer",

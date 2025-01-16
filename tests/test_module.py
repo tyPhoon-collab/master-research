@@ -68,3 +68,21 @@ def test_diffwave_generate():
     )
 
     assert isinstance(audio, torch.Tensor)
+
+
+def test_music_hifi():
+    import torch
+
+    from vocoder.module.music_hifi import MusicHiFiLightning
+
+    device = "cuda"
+    n_mels = 128
+    model = MusicHiFiLightning(
+        n_mels=n_mels,
+    ).to(device)
+
+    waveform = model(
+        torch.randn(1, n_mels, 864, device=device),
+    )
+
+    assert isinstance(waveform, torch.Tensor)
