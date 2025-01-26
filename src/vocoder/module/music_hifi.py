@@ -52,10 +52,12 @@ class MusicHiFiLightning(L.LightningModule):
     def configure_optimizers(self):
         from schedulefree import RAdamScheduleFree
 
-        optimizer_g = RAdamScheduleFree(self.generator.parameters(), lr=self.lr)
-        optimizer_d = RAdamScheduleFree(self.discriminator.parameters(), lr=self.lr)
+        self.optimizer_g = RAdamScheduleFree(self.generator.parameters(), lr=self.lr)
+        self.optimizer_d = RAdamScheduleFree(
+            self.discriminator.parameters(), lr=self.lr
+        )
 
-        return [optimizer_g, optimizer_d]
+        return [self.optimizer_g, self.optimizer_d]
 
     def training_step(self, batch):
         optimizer_g, optimizer_d = self.optimizers()  # type: ignore
