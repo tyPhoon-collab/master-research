@@ -16,6 +16,8 @@ class DiffWaveLightning(L.LightningModule):
         criterion: torch.nn.Module | None = None,
     ):
         super().__init__()
+        self.save_hyperparameters()
+
         self.scheduler = DDPMScheduler(
             num_train_timesteps=50,
             beta_start=1e-4,

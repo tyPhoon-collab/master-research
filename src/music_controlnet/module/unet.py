@@ -15,6 +15,7 @@ class UNetLightning(L.LightningModule):
         num_class_embeds: int | None = None,
     ):
         super().__init__()
+        self.save_hyperparameters()
 
         self.model = UNet2DModel(
             in_channels=1,
@@ -47,7 +48,7 @@ class UNetLightning(L.LightningModule):
 
     def training_step(self, batch, batch_idx):
         mel = batch.get("mel")
-        genre = batch.get("genre")
+        genre = batch.get("genre") if self.model.config.num_class_embeds else None  # type: ignore
 
         noise = torch.randn_like(mel)
         timesteps = torch.randint(
