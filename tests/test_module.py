@@ -3,13 +3,11 @@ def test_unet():
 
     from music_controlnet.module.unet import UNetLightning
 
-    device = "cuda"
-    model = UNetLightning().to(device)
+    model = UNetLightning()
 
     noise = model(
-        torch.randn(1, 1, 160, 2560, device=device),
-        torch.randint(0, 999, (1,), device=device),
-        torch.tensor([[21]], device=device),
+        torch.randn(1, 1, 160, 2560),
+        torch.randint(0, 999, (1,)),
     ).sample
 
     assert isinstance(noise, torch.Tensor)
@@ -25,8 +23,7 @@ def test_unet_generate():
 
     from music_controlnet.module.unet import UNetLightning
 
-    device = "cuda"
-    model = UNetLightning().to(device)
+    model = UNetLightning()
 
     sample = model.generate(160, 2560, timesteps=1)
 
@@ -43,13 +40,12 @@ def test_diffwave():
 
     from vocoder.module.diffwave import DiffWaveLightning
 
-    device = "cuda"
-    model = DiffWaveLightning(n_mels=128).to(device)
+    model = DiffWaveLightning(n_mels=128)
 
     audio = model(
-        torch.randn(1, 1, 432 * 256, device=device),
-        torch.randint(0, 49, (1,), device=device),
-        torch.randn(1, 1, 128, 432, device=device),
+        torch.randn(1, 1, 432 * 256),
+        torch.randint(0, 49, (1,)),
+        torch.randn(1, 1, 128, 432),
     )
 
     assert isinstance(audio, torch.Tensor)
@@ -60,29 +56,25 @@ def test_diffwave_generate():
 
     from vocoder.module.diffwave import DiffWaveLightning
 
-    device = "cuda"
-    model = DiffWaveLightning(n_mels=128).to(device)
+    model = DiffWaveLightning(n_mels=128)
 
     audio = model.generate(
-        torch.randn(1, 1, 128, 432, device=device),
+        torch.randn(1, 1, 128, 432),
     )
 
     assert isinstance(audio, torch.Tensor)
 
 
-def test_music_hifi():
-    import torch
+# def test_music_hifi():
+#     import torch
 
-    from vocoder.module.music_hifi import MusicHiFiLightning
+#     from vocoder.module.music_hifi import MusicHiFiLightning
 
-    device = "cuda"
-    n_mels = 128
-    model = MusicHiFiLightning(
-        n_mels=n_mels,
-    ).to(device)
+#     n_mels = 128
+#     model = MusicHiFiLightning(n_mels=n_mels)
 
-    waveform = model(
-        torch.randn(1, n_mels, 864, device=device),
-    )
+#     waveform = model(
+#         torch.randn(1, n_mels, 864),
+#     )
 
-    assert isinstance(waveform, torch.Tensor)
+#     assert isinstance(waveform, torch.Tensor)

@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 from torchaudio.transforms import (
     AmplitudeToDB,
@@ -6,7 +8,7 @@ from torchaudio.transforms import (
     MelSpectrogram,
 )
 
-from tool.config import MelConfig
+from tool.functions import fixed_mel_length, fixed_waveform_length
 from tool.transforms import (
     Clamp,
     DBToAmplitude,
@@ -17,16 +19,52 @@ from tool.transforms import (
 )
 
 
+class MelTransform:
+    def __init__(self, **kwargs):
+        self.mel = MelSpectrogramPipeline(**kwargs)
+
+    def __call__(self, x: torch.Tensor) -> Any:
+        return {
+            "mel": self.mel(x),
+        }
+
+
+class MelWaveformTransform:
+    def __init__(self, **kwargs):
+        self.mel = MelSpectrogramPipeline(**kwargs)
+        self.waveform = WaveformPipeline(**kwargs)
+
+    def __call__(self, x: torch.Tensor) -> Any:
+        return {
+            "mel": self.mel(x),
+            "waveform": self.waveform(x),
+        }
+
+
 class WaveformPipeline(torch.nn.Module):
-    def __init__(self, config: MelConfig):
+    def __init__(
+        self,
+        audio_duration: int,
+        n_segments: int,
+        sample_rate: int,
+        hop_length: int,
+    ):
         super().__init__()
 
-        c = config
+        fixed_length = fixed_waveform_length(
+            fixed_mel_length=fixed_mel_length(
+                audio_duration=audio_duration,
+                n_segments=n_segments,
+                sample_rate=sample_rate,
+                hop_length=hop_length,
+            ),
+            hop_length=hop_length,
+        )
 
         self.transform = torch.nn.Sequential(
             ToMono(),
             Clamp.one(),
-            TrimOrPad(target_length=c.fixed_length),
+            TrimOrPad(target_length=fixed_length),
         )
 
     def forward(self, waveform: torch.Tensor) -> torch.Tensor:
@@ -34,27 +72,42 @@ class WaveformPipeline(torch.nn.Module):
 
 
 class MelSpectrogramPipeline(torch.nn.Module):
-    def __init__(self, config: MelConfig):
+    def __init__(
+        self,
+        audio_duration: int,
+        n_segments: int,
+        sample_rate: int,
+        n_fft: int,
+        win_length: int,
+        hop_length: int,
+        n_mels: int,
+        top_db: int,
+    ):
         super().__init__()
 
-        c = config
+        fixed_length = fixed_mel_length(
+            audio_duration=audio_duration,
+            n_segments=n_segments,
+            sample_rate=sample_rate,
+            hop_length=hop_length,
+        )
 
         self.transform = torch.nn.Sequential(
             ToMono(),
             Clamp.one(),
             MelSpectrogram(
-                sample_rate=c.sr,
-                n_fft=c.n_fft,
-                win_length=c.win_length,
-                hop_length=c.hop_length,
-                n_mels=c.n_mels,
+                sample_rate=sample_rate,
+                n_fft=n_fft,
+                win_length=win_length,
+                hop_length=hop_length,
+                n_mels=n_mels,
                 power=2.0,
                 normalized=True,
             ),
-            TrimOrPad(target_length=c.fixed_mel_length, mode="replicate"),
+            TrimOrPad(target_length=fixed_length, mode="replicate"),
             AmplitudeToDB(
                 stype="power",
-                top_db=c.top_db,
+                top_db=top_db,
             ),
             Scale.one(),
         )
@@ -64,23 +117,29 @@ class MelSpectrogramPipeline(torch.nn.Module):
 
 
 class InverseMelSpectrogramPipeline(torch.nn.Module):
-    def __init__(self, config: MelConfig):
+    def __init__(
+        self,
+        sample_rate: int,
+        n_fft: int,
+        win_length: int,
+        hop_length: int,
+        n_mels: int,
+        top_db: int,
+    ):
         super().__init__()
 
-        c = config
-
         self.transform = torch.nn.Sequential(
-            Lambda(lambda mel: mel / 2 * c.top_db),
+            Lambda(lambda mel: mel / 2 * top_db),
             DBToAmplitude(),
             InverseMelScale(
-                n_stft=c.n_stft,
-                n_mels=c.n_mels,
-                sample_rate=c.sr,
+                n_stft=n_fft // 2 + 1,
+                n_mels=n_mels,
+                sample_rate=sample_rate,
             ),
             GriffinLim(
-                n_fft=c.n_fft,
-                win_length=c.win_length,
-                hop_length=c.hop_length,
+                n_fft=n_fft,
+                win_length=win_length,
+                hop_length=hop_length,
                 power=2.0,
             ),
         )

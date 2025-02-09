@@ -1,8 +1,9 @@
 defaults:
-  - data: fma_small
+  - data: guitar_set
   - train: default
   - infer: default
-  - model: fma_unet
+  - mel: default
+  - model: unet
   - _self_
 
 mode: train

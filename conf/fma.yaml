@@ -2,7 +2,9 @@ defaults:
   - data: fma_small
   - train: default
   - infer: default
+  - mel: default
   - model: fma_unet
   - _self_
 
 mode: train
+datamodule_builder: tool.datamodule_builder.fma_mel

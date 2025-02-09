@@ -1,8 +1,7 @@
 import lightning as L
 from torch.utils.data import DataLoader, random_split
 
-from fma.dataset import FMADataset, collate_fn
-from fma.types import Transform
+from fma.dataset import FMADataset, _Transform
 
 
 class FMADataModule(L.LightningDataModule):
@@ -13,7 +12,7 @@ class FMADataModule(L.LightningDataModule):
         audio_dir: str,
         sample_rate: int,
         n_segments: int,
-        transform: Transform | None,
+        transform: _Transform | None,
         batch_size: int,
         val_split: float = 0.2,
     ):
@@ -50,7 +49,6 @@ class FMADataModule(L.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            collate_fn=collate_fn,
         )
 
     def val_dataloader(self):
@@ -58,5 +56,4 @@ class FMADataModule(L.LightningDataModule):
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            collate_fn=collate_fn,
         )

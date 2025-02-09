@@ -1,71 +1,62 @@
 import os
 
 import torch
-import torchaudio
 
+from music_controlnet.module.unet import UNetLightning
 from tool.config import Config
-from tool.pipeline import InverseMelSpectrogramPipeline, MelSpectrogramPipeline
+from vocoder.module.diffwave import DiffWaveLightning
 
 
-def inference_unet(cfg: Config) -> torch.Tensor:
-    from music_controlnet.module.unet import UNetLightning
+class UNetGenerator:
+    def __init__(self, ckpt_path: str, n_mels: int, length: int):
+        self.ckpt_path = _check_ckpt_path(ckpt_path)
 
-    ci = cfg.infer
-    cm = cfg.mel
+        self.model = UNetLightning.load_from_checkpoint(self.ckpt_path)
+        # self.n_mels = self.model.n_mels
+        self.n_mels = n_mels
+        self.length = length
 
-    ckpt_path = _check_ckpt_path(ci)
-    model = UNetLightning.load_from_checkpoint(ckpt_path)
-
-    mel = model.generate(
-        n_mels=cm.n_mels,
-        length=cm.fixed_length,
-    )
-
-    _save_spectrogram(ci.save_dir, mel)
-
-    return mel
+    def __call__(self):
+        mel = self.model.generate(
+            n_mels=self.n_mels,
+            length=self.length,
+        )
+        return mel
 
 
-def inference_diffwave(cfg: Config) -> torch.Tensor:
-    from vocoder.module.diffwave import DiffWaveLightning
+class DiffWaveVocoder:
+    def __init__(self, ckpt_path: str, n_mels: int, hop_length: int) -> None:
+        self.ckpt_path = _check_ckpt_path(ckpt_path)
+        self.model = DiffWaveLightning.load_from_checkpoint(
+            ckpt_path,
+            n_mels=n_mels,
+        )
 
-    ci = cfg.infer
-    cm = cfg.mel
+        self.hop_length = hop_length
 
-    ckpt_path = _check_ckpt_path(ci)
-    model = DiffWaveLightning.load_from_checkpoint(
-        ckpt_path,
-        n_mels=cm.n_mels,
-    )
+    def __call__(self, mel: torch.Tensor) -> torch.Tensor:
+        waveform = self.model.generate(
+            mel,
+            hop_length=self.hop_length,
+        )
 
-    pipe = MelSpectrogramPipeline(cm).to(model.device)
-    y, _ = torchaudio.load("data/audio/000010.mp3")
-    y = y.to(model.device)
-    mel = pipe(y)
-
-    waveform = model.generate(
-        mel,
-        hop_length=cm.hop_length,
-    )
-
-    _save_waveform(ci.save_dir, waveform)
-
-    return waveform
+        return waveform
 
 
 def inference(cfg: Config) -> torch.Tensor:
-    mel = inference_unet(cfg)
-    pipe = InverseMelSpectrogramPipeline(cfg.mel).to("cuda")
+    gen = cfg.infer.generator_object
+    voc = cfg.infer.vocoder_object
 
-    waveform = pipe(mel)
+    mel = gen()
+    waveform = voc(mel)
+
+    _save_spectrogram(cfg.infer.save_dir, mel)
     _save_waveform(cfg.infer.save_dir, waveform)
 
     return waveform
 
 
-def _check_ckpt_path(ci):
-    ckpt_path = ci.checkpoint_path
-
+def _check_ckpt_path(ckpt_path: str | None) -> str:
     if ckpt_path is None:
         raise ValueError("checkpoint_path must be specified")
 

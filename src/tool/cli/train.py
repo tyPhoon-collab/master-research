@@ -6,51 +6,11 @@ from tool.config import Config
 logger = getLogger(__name__)
 
 
-def train_unet(c: Config):
-    from music_controlnet.module.unet import UNetLightning
-    from tool.factory import build_unet_datamodule
+def train(c: Config):
+    model = c.model_object
+    data = c.data_object
 
-    ct = c.train
-
-    datamodule = build_unet_datamodule(c)
-
-    model = UNetLightning(lr=ct.lr, criterion=ct.criterion_object)
-
-    _train(c, datamodule, model)
-
-
-def train_diffwave(c: Config):
-    from tool.factory import build_vocoder_datamodule
-    from vocoder.module.diffwave import DiffWaveLightning
-
-    ct = c.train
-
-    datamodule = build_vocoder_datamodule(c)
-
-    model = DiffWaveLightning(
-        n_mels=c.mel.n_mels,
-        lr=ct.lr,
-        criterion=ct.criterion_object,
-    )
-
-    _train(c, datamodule, model)
-
-
-def train_music_hifi(c: Config):
-    from tool.factory import build_vocoder_datamodule
-    from vocoder.module.music_hifi import MusicHiFiLightning
-
-    ct = c.train
-
-    datamodule = build_vocoder_datamodule(c)
-
-    model = MusicHiFiLightning(
-        lr=ct.lr,
-        sampling_rate=c.mel.sr,
-        n_mels=c.mel.n_mels,
-    )
-
-    _train(c, datamodule, model)
+    _train(c, data, model)
 
 
 def _train(c: Config, datamodule, model):

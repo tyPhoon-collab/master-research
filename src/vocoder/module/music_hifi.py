@@ -11,7 +11,7 @@ class MusicHiFiLightning(L.LightningModule):
     def __init__(
         self,
         lr: float = 1e-4,
-        sampling_rate: int = 22050,
+        sample_rate: int = 22050,
         n_mels: int = 128,
     ):
         super().__init__()
@@ -37,7 +37,7 @@ class MusicHiFiLightning(L.LightningModule):
             )
         )
         self.discriminator = Discriminator(
-            sample_rate=sampling_rate,
+            sample_rate=sample_rate,
         )  # TODO: check params from paper
 
         self.gan_loss = GANLoss(self.discriminator)

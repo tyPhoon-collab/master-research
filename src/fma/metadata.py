@@ -5,10 +5,7 @@ from logging import getLogger
 import polars as pl
 import torch
 
-from fma.types import Genres
-
-PADDING_INDEX = 163
-NUM_GENRES = 163 + 1
+NUM_GENRES = 163
 
 logger = getLogger(__name__)
 
@@ -21,7 +18,7 @@ def fma_audio_path(audio_dir: str, track_id: int) -> str:
     return audio_path
 
 
-def load_multi_header_csv(path: str, num_rows: int) -> pl.DataFrame:
+def _load_fma_metadata_multi_header_csv(path: str, num_rows: int) -> pl.DataFrame:
     header = pl.read_csv(path, n_rows=num_rows, has_header=False)
 
     combined_header = [
@@ -110,7 +107,7 @@ class FMAMetadata:
         ignore_ids: list[int] | None = _default_ignore_ids,
     ):
         metadata_path = os.path.join(metadata_dir, "tracks.csv")
-        metadata_all = load_multi_header_csv(metadata_path, 3)
+        metadata_all = _load_fma_metadata_multi_header_csv(metadata_path, 3)
 
         metadata_exists = metadata_all.with_columns(
             metadata_all["track_id"]
@@ -136,7 +133,7 @@ class FMAMetadata:
         genre_ids = pl.read_csv(os.path.join(metadata_dir, "genres.csv"))["genre_id"]
         self.genre_id_to_index_map = {id: i for i, id in enumerate(genre_ids)}
 
-    def to_genre_indics(self, index) -> Genres:
+    def to_genre_indics(self, index) -> torch.Tensor:
         genre_ids: list[int] = ast.literal_eval(self.str_genre_ids[index])
 
         return torch.tensor([self.genre_id_to_index_map[id] for id in genre_ids])

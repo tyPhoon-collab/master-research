@@ -6,18 +6,15 @@ from diffusers.models.unets.unet_2d import UNet2DModel
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from tqdm import tqdm
 
-from fma.metadata import NUM_GENRES, PADDING_INDEX
-
 
 class UNetLightning(L.LightningModule):
     def __init__(
         self,
         lr: float = 1e-4,
         criterion: torch.nn.Module | None = None,
+        num_class_embeds: int | None = None,
     ):
         super().__init__()
-
-        num_class_embeds = NUM_GENRES
 
         self.model = UNet2DModel(
             in_channels=1,
@@ -43,20 +40,14 @@ class UNetLightning(L.LightningModule):
             layers_per_block=1,
         )
 
-        # TODO: Is an EmbeddingBag good?
-        self.model.class_embedding = torch.nn.EmbeddingBag(  # type: ignore
-            num_class_embeds,
-            256,
-            padding_idx=PADDING_INDEX,
-        )
         self.scheduler = DDPMScheduler()
 
         self.lr = lr
         self.criterion = criterion or torch.nn.L1Loss()
 
     def training_step(self, batch, batch_idx):
-        mel = batch["mel"]
-        genres = batch["genres"]
+        mel = batch.get("mel")
+        genre = batch.get("genre")
 
         noise = torch.randn_like(mel)
         timesteps = torch.randint(
@@ -65,7 +56,7 @@ class UNetLightning(L.LightningModule):
             device=self.device,
         )
         noisy_mel = self.scheduler.add_noise(mel, noise, timesteps)  # type: ignore
-        noise_pred = self(noisy_mel, timesteps, genres).sample
+        noise_pred = self(noisy_mel, timesteps, genre).sample
         loss = self.criterion(noise_pred, noise)
 
         self.log("train_loss", loss, prog_bar=True)
@@ -80,15 +71,20 @@ class UNetLightning(L.LightningModule):
 
         return self.optimizer
 
-    def forward(self, x: torch.Tensor, timestep: torch.Tensor, genres: torch.Tensor):
-        return self.model(x, timestep, class_labels=genres)
+    def forward(
+        self,
+        x: torch.Tensor,
+        timestep: torch.Tensor,
+        class_labels: torch.Tensor | None = None,
+    ):
+        return self.model(x, timestep, class_labels=class_labels)
 
     @torch.inference_mode()
     def generate(
         self,
         n_mels: int,
         length: int,
-        genres: torch.Tensor | None = None,
+        genre: torch.Tensor | None = None,
         timesteps: int = 1000,
         on_timesteps: Callable[[int, torch.Tensor], None] | None = None,
         show_progress: bool = True,
@@ -102,8 +98,6 @@ class UNetLightning(L.LightningModule):
         scheduler = inference_scheduler or self.scheduler
         scheduler.set_timesteps(timesteps)
 
-        # Hip-Hop: 21
-        genres = genres or torch.tensor([[21]], device=self.device)
         sample = torch.randn(noise_shape, device=self.device)
 
         on_timesteps = on_timesteps or (lambda t, x: None)
@@ -113,7 +107,7 @@ class UNetLightning(L.LightningModule):
             desc="Generating",
             disable=not show_progress,
         ):
-            noise_pred = self.model(sample, t, genres).sample
+            noise_pred = self.model(sample, t, genre).sample
             sample = scheduler.step(noise_pred, int(t.item()), sample).prev_sample  # type: ignore
 
             on_timesteps(int(t.item()), sample)

@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
+        "ckpt",
         "colorbar",
         "controlnet",
+        "datamodule",
         "DDIM",
         "DDPM",
         "diffwave",

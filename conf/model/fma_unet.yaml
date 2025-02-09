@@ -1,0 +1,2 @@
+_target_: music_controlnet.module.unet.UNetLightning
+num_class_embeds: 163 # genre embeddings

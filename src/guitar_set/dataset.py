@@ -1,60 +1,51 @@
+import os
 from collections.abc import Callable
 
 import torch
 import torchaudio
 from torch.utils.data import Dataset
 
-from fma.metadata import (
-    FMAMetadata,
-    fma_audio_path,
-)
-from tool.dataset import Resampler, Splitter
+from guitar_set.annotation import GuitarSetAnnotation
+from tool.dataset import Resampler
 
 _Return = dict[str, torch.Tensor | str]
 _Transform = Callable[[torch.Tensor], _Return]
 
 
-class FMADataset(Dataset[_Return]):
+class GuitarSetDataset(Dataset[_Return]):
     def __init__(
         self,
         *,
-        metadata_dir: str,
+        annotation_dir: str,
         audio_dir: str,
-        sample_rate: int,
-        n_segments: int = 1,
         transform: _Transform | None = None,
+        sample_rate: int,
     ):
         super().__init__()
 
+        self.annotation_dir = annotation_dir
         self.audio_dir = audio_dir
         self.transform = transform
 
-        self.metadata = FMAMetadata(
-            metadata_dir=metadata_dir,
-            audio_dir=audio_dir,
-        )
-        self.splitter = Splitter(n_segments)
+        self.annotation = GuitarSetAnnotation(annotation_dir)
         self.resampler = Resampler(sample_rate)
 
+        self.audio_paths = sorted(
+            [os.path.join(audio_dir, f) for f in os.listdir(audio_dir) if "comp" in f]
+        )
+
     def __len__(self):
-        return len(self.metadata) * self.splitter.n_segments
+        return len(self.audio_paths)
 
-    def __getitem__(self, index) -> _Return:
-        id_index = self.splitter.get_id_index(index)
-
-        track_id: int = self.metadata.ids[id_index]
-        audio_path = fma_audio_path(self.audio_dir, track_id)
+    def __getitem__(self, index):
+        audio_path = self.audio_paths[index]
 
         waveform, sr = self._load(audio_path)
-        waveform = self.splitter(waveform, index)
         waveform = self.resampler(waveform, sr)
         transformed = self._transform(waveform)
 
-        genres = self.metadata.to_genre_indics(id_index)
-
         return {
             **transformed,
-            "genre": genres[0],
             "audio_path": audio_path,
         }
 

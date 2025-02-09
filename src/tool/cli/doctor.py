@@ -1,14 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+import lightning as L
 import torch
 from rich.console import Console
 from rich.table import Table
 from tqdm import tqdm
 
-from fma.dataset import FMADataset
 from tool.config import Config
-from tool.pipeline import MelSpectrogramPipeline, WaveformPipeline
 
 console = Console()
 
@@ -29,6 +28,9 @@ class _NaNValidator(_Validator):
         self._key = key
 
     def __call__(self, batch: dict[str, Any]) -> None | str:
+        if self._key not in batch:
+            return None
+
         if torch.isnan(batch[self._key]).any():
             return f"NaN found in {self._key}"
         return None
@@ -43,6 +45,9 @@ class _ZeroValidator(_Validator):
         self._key = key
 
     def __call__(self, batch: dict[str, Any]) -> None | str:
+        if self._key not in batch:
+            return None
+
         if torch.all(batch[self._key] == 0):
             return f"All-zero detected in {self._key}"
         return None
@@ -99,39 +104,21 @@ class _Doctor:
 def doctor(c: Config):
     console.print("Starting dataset validation...", style="bold cyan")
 
-    pipe_waveform = WaveformPipeline(c.mel)
-    pipe_mel = MelSpectrogramPipeline(c.mel)
+    datamodule: L.LightningDataModule = c.data_object
+    datamodule.setup("fit")
 
-    dataset = FMADataset(
-        metadata_dir=c.data.metadata_dir,
-        audio_dir=c.data.audio_dir,
-        sample_rate=c.mel.sr,
-        transform=lambda x: {
-            "x": x,
-            "waveform": pipe_waveform(x),
-            "mel": pipe_mel(x),
-        },
-        n_segments=c.mel.n_segments,
-    )
-
-    dataloader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=1,
-        shuffle=False,
-    )
+    dataloader = datamodule.train_dataloader()
 
     validators = [
-        _NaNValidator("x"),
         _NaNValidator("waveform"),
         _NaNValidator("mel"),
-        _ZeroValidator("x"),
         _ZeroValidator("waveform"),
     ]
 
     doctor = _Doctor(validators)
 
     console.print(
-        f"Checking {len(dataset)} files for issues...\n", style="bold magenta"
+        f"Checking {len(dataloader)} files for issues...\n", style="bold magenta"
     )
 
     for batch in tqdm(dataloader, desc="Validating dataset", unit="batch"):

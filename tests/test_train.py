@@ -1,43 +1,37 @@
-from tool.config import DataConfig, TrainConfig
-
-metadata_dir = "E:/Dataset/FMA/fma_metadata"
-audio_dir = "E:/Dataset/FMA/fma_small"
-sample_rate = 22050
+from tests.utils import load_data_config
+from tool.config import Config, TrainConfig
 
 
 def test_train_unet():
-    from tool.cli.train import train_unet
-    from tool.config import Config
+    from fma.metadata import NUM_GENRES
+    from tool.cli.train import train
 
     c = Config(
-        mode="train_unet",
-        data=DataConfig(
-            metadata_dir=metadata_dir,
-            audio_dir=audio_dir,
-        ),
+        data=load_data_config(),
         train=TrainConfig(
-            batch_size=1,
             fast_dev_run=True,
         ),
+        model={
+            "_target_": "music_controlnet.module.unet.UNetLightning",
+            "num_class_embeds": NUM_GENRES,
+        },
     )
 
-    train_unet(c)
+    train(c)
 
 
 def test_train_diffwave():
-    from tool.cli.train import train_diffwave
-    from tool.config import Config
+    from tool.cli.train import train
 
     c = Config(
-        mode="train_diffwave",
-        data=DataConfig(
-            metadata_dir=metadata_dir,
-            audio_dir=audio_dir,
-        ),
+        data=load_data_config(),
         train=TrainConfig(
-            batch_size=1,
             fast_dev_run=True,
         ),
+        model={
+            "_target_": "vocoder.module.diffwave.DiffWaveLightning",
+            "n_mels": 128,
+        },
     )
 
-    train_diffwave(c)
+    train(c)
