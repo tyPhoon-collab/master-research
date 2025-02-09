@@ -2,7 +2,7 @@ defaults:
   - data: fma_small
   - train: default
   - infer: default
-  - model: fma_unet
+  - model: unet
   - _self_
 
 mode: train
