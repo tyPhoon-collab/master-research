@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import Any
 
 import torch
@@ -17,6 +18,8 @@ from tool.transforms import (
     ToMono,
     TrimOrPad,
 )
+
+logger = getLogger(__name__)
 
 
 class MelTransform:
@@ -48,8 +51,12 @@ class WaveformPipeline(torch.nn.Module):
         n_segments: int,
         sample_rate: int,
         hop_length: int,
+        **kwargs,  # for pass another args
     ):
         super().__init__()
+
+        if kwargs:
+            logger.warning(f"Unused kwargs provided: {kwargs}")
 
         fixed_length = fixed_waveform_length(
             fixed_mel_length=fixed_mel_length(
@@ -82,8 +89,12 @@ class MelSpectrogramPipeline(torch.nn.Module):
         hop_length: int,
         n_mels: int,
         top_db: int,
+        **kwargs,  # for pass another args
     ):
         super().__init__()
+
+        if kwargs:
+            logger.warning(f"Unused kwargs provided: {kwargs}")
 
         fixed_length = fixed_mel_length(
             audio_duration=audio_duration,

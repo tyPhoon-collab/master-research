@@ -1,0 +1,9 @@
+_target_: tool.pipeline.MelWaveformTransform
+audio_duration: 30
+n_segments: 3
+sample_rate: 22050
+n_fft: 1024
+win_length: 1024
+hop_length: 256
+n_mels: 128
+top_db: 80

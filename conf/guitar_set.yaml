@@ -2,7 +2,6 @@ defaults:
   - data: guitar_set
   - train: default
   - infer: default
-  - mel: default
   - model: unet
   - _self_
 
