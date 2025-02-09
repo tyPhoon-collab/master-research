@@ -1,0 +1,14 @@
+_target_: guitar_set.datamodule.GuitarSetDataModule
+annotation_dir: ./data/GuitarSet/annotation
+audio_dir: ./data/GuitarSet/audio_mono-mic
+transform:
+  _target_: tool.pipeline.MelTransform
+  audio_duration: 6
+  n_segments: 1
+  sample_rate: 22050
+  n_fft: 1024
+  win_length: 1024
+  hop_length: 256
+  n_mels: 128
+  top_db: 80
+batch_size: 4

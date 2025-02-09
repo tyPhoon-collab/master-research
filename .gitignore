@@ -23,11 +23,3 @@ lightning_logs
 
 # Virtual environments
 .venv
-
-# Config
-conf/train/*
-!conf/train/default.yaml
-
-conf/data/*
-!conf/data/small.yaml
-!conf/data/medium.yaml
