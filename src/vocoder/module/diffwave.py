@@ -65,6 +65,12 @@ class DiffWaveLightning(L.LightningModule):
 
         return loss
 
+    def validation_step(self, batch, batch_idx):
+        """
+        Callbackが適切に呼ばれるのために、空のvalidation_stepを追加
+        """
+        pass
+
     def configure_optimizers(self):
         from schedulefree import RAdamScheduleFree
 

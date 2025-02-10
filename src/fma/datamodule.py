@@ -26,9 +26,6 @@ class FMADataModule(L.LightningDataModule):
         self.val_size = val_size
 
     def setup(self, stage: str):
-        if stage != "fit":
-            raise NotImplementedError()
-
         dataset = FMADataset(
             metadata_dir=self.metadata_dir,
             audio_dir=self.audio_dir,
