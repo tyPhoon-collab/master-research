@@ -14,7 +14,7 @@ class FMADataModule(L.LightningDataModule):
         n_segments: int,
         transform: _Transform | None,
         batch_size: int,
-        val_split: float = 0.2,
+        val_size: int = 1,
     ):
         super().__init__()
         self.metadata_dir = metadata_dir
@@ -23,7 +23,7 @@ class FMADataModule(L.LightningDataModule):
         self.n_segments = n_segments
         self.batch_size = batch_size
         self.transform = transform
-        self.val_split = val_split
+        self.val_size = val_size
 
     def setup(self, stage: str):
         if stage != "fit":
@@ -37,11 +37,10 @@ class FMADataModule(L.LightningDataModule):
             transform=self.transform,
         )
 
-        val_size = int(len(dataset) * self.val_split)
-        train_size = len(dataset) - val_size
+        train_size = len(dataset) - self.val_size
 
         self.train_dataset, self.val_dataset = random_split(
-            dataset, [train_size, val_size]
+            dataset, [train_size, self.val_size]
         )
 
     def train_dataloader(self):
