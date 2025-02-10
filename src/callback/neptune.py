@@ -17,7 +17,7 @@ class NeptuneLoggerCallback(Callback):
         self.epoch_total_loss = 0.0
         self.epoch_steps_count = 0
 
-    def on_train_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
+    def on_fit_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
         self.run: Run = pl_module.logger.experiment  # type: ignore
 
     def on_train_batch_end(
