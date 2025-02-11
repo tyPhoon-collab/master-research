@@ -1,0 +1,6 @@
+_target_: tool.preprocess.GuitarSetPreprocessor
+splitter:
+  _target_: tool.preprocess.FixedLengthSplitter
+  length: 10
+audio_dir: ./data/GuitarSet/audio_mono-mic
+output_dir: ./data/GuitarSet/preprocessed

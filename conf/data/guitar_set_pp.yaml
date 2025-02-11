@@ -1,0 +1,12 @@
+defaults:
+  - transform: mel
+  - _self_
+
+_target_: guitar_set.datamodule.GuitarSetDataModule
+annotation_dir: ./data/GuitarSet/annotation
+audio_dir: ./data/GuitarSet/preprocessed
+batch_size: 4
+
+transform:
+  audio_duration: 10
+  n_segments: 1

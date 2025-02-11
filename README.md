@@ -1,18 +1,3 @@
 # 修士研究
 
-## プロジェクト
-
-### ツール
-
-- uv
-
-### for Mac
-
-開発目的でMacでも実行できるようにしてある
-
-#### Setup
-
-`script/darwin_setup.sh`を実行する。以下の処理が行われる
-
-- CPUで動作するために、環境変数を設定する必要がある
-  - `export PYTORCH_ENABLE_MPS_FALLBACK=1`
+[ドキュメント](https://docs.craft.do/editor/d/65c9bdaf-9c31-c650-c37b-20d5fc61f516/AC95E3A3-50CE-457C-BACB-2C9D9E6AF1BC?s=ZddTeJy6ssL98nR8JktnuctSXsseedMoB9UoeW7ZedUV)

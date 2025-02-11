@@ -11,6 +11,7 @@ Mode = Literal[
     "infer",
     "doctor",
     "clean",
+    "preprocess",
 ]
 
 
@@ -70,6 +71,7 @@ class Config(BaseModel):
     infer: InferConfig = field(default_factory=InferConfig)
     model: dict = field(default_factory=dict)
     data: dict = field(default_factory=dict)
+    preprocess: dict = field(default_factory=dict)
 
     mode: Mode = "train"
 
@@ -80,3 +82,7 @@ class Config(BaseModel):
     @cached_property
     def data_object(self) -> Any:
         return instantiate(self.data)
+
+    @cached_property
+    def preprocess_object(self) -> Any:
+        return instantiate(self.preprocess)

@@ -44,6 +44,13 @@ def clean(_):
     clean()
 
 
+@register_mode("preprocess")
+def preprocess(cfg: Config):
+    from tool.cli.preprocess import preprocess
+
+    preprocess(cfg)
+
+
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
     container = OmegaConf.to_container(cfg, resolve=True)

@@ -3,6 +3,7 @@ defaults:
   - train: default
   - infer: default
   - model: unet
+  - preprocess: guitar_set
   - _self_
 
 mode: train
