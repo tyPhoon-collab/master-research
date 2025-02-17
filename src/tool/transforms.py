@@ -1,8 +1,156 @@
+from logging import getLogger
 from typing import Literal
 
 import torch
 import torch.nn.functional as F
 import torchaudio
+from torchaudio.transforms import (
+    AmplitudeToDB,
+    GriffinLim,
+    InverseMelScale,
+    MelSpectrogram,
+)
+
+from tool.functions import fixed_mel_length, fixed_waveform_length
+
+logger = getLogger(__name__)
+
+
+class MelTransform:
+    def __init__(self, **kwargs):
+        self.mel = Mel(**kwargs)
+
+    def __call__(self, x: torch.Tensor) -> dict:
+        return {
+            "mel": self.mel(x),
+        }
+
+
+class MelWaveformTransform:
+    def __init__(self, **kwargs):
+        self.mel = Mel(**kwargs)
+        self.waveform = NormalizeWaveform(**kwargs)
+
+    def __call__(self, x: torch.Tensor) -> dict:
+        return {
+            "mel": self.mel(x),
+            "waveform": self.waveform(x),
+        }
+
+
+class NormalizeWaveform(torch.nn.Module):
+    def __init__(
+        self,
+        audio_duration: int,
+        n_segments: int,
+        sample_rate: int,
+        hop_length: int,
+        **kwargs,  # for pass another args
+    ):
+        super().__init__()
+
+        if kwargs:
+            logger.warning(f"Unused kwargs provided: {kwargs}")
+
+        fixed_length = fixed_waveform_length(
+            fixed_mel_length=fixed_mel_length(
+                audio_duration=audio_duration,
+                n_segments=n_segments,
+                sample_rate=sample_rate,
+                hop_length=hop_length,
+            ),
+            hop_length=hop_length,
+        )
+
+        self.transform = torch.nn.Sequential(
+            ToMono(),
+            Clamp.one(),
+            TrimOrPad(target_length=fixed_length),
+        )
+
+    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+        return self.transform(waveform)
+
+
+class Mel(torch.nn.Module):
+    def __init__(
+        self,
+        audio_duration: int,
+        n_segments: int,
+        sample_rate: int,
+        n_fft: int,
+        win_length: int,
+        hop_length: int,
+        n_mels: int,
+        top_db: int,
+        **kwargs,  # for pass another args
+    ):
+        super().__init__()
+
+        if kwargs:
+            logger.warning(f"Unused kwargs provided: {kwargs}")
+
+        fixed_length = fixed_mel_length(
+            audio_duration=audio_duration,
+            n_segments=n_segments,
+            sample_rate=sample_rate,
+            hop_length=hop_length,
+        )
+
+        self.transform = torch.nn.Sequential(
+            ToMono(),
+            Clamp.one(),
+            MelSpectrogram(
+                sample_rate=sample_rate,
+                n_fft=n_fft,
+                win_length=win_length,
+                hop_length=hop_length,
+                n_mels=n_mels,
+                power=2.0,
+                normalized=True,
+            ),
+            TrimOrPad(target_length=fixed_length, mode="replicate"),
+            AmplitudeToDB(
+                stype="power",
+                top_db=top_db,
+            ),
+            Scale.one(),
+        )
+
+    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+        return self.transform(waveform)
+
+
+class InverseMel(torch.nn.Module):
+    def __init__(
+        self,
+        sample_rate: int,
+        n_fft: int,
+        win_length: int,
+        hop_length: int,
+        n_mels: int,
+        top_db: int,
+    ):
+        super().__init__()
+
+        self.transform = torch.nn.Sequential(
+            Lambda(lambda mel: mel / 2 * top_db),
+            DBToAmplitude(),
+            InverseMelScale(
+                n_stft=n_fft // 2 + 1,
+                n_mels=n_mels,
+                sample_rate=sample_rate,
+            ),
+            GriffinLim(
+                n_fft=n_fft,
+                win_length=win_length,
+                hop_length=hop_length,
+                power=2.0,
+            ),
+        )
+
+    def forward(self, mel: torch.Tensor) -> torch.Tensor:
+        return self.transform(mel)
 
 
 class TrimOrPad(torch.nn.Module):

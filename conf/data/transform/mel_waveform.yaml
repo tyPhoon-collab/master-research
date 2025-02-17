@@ -1,4 +1,4 @@
-_target_: tool.pipeline.MelWaveformTransform
+_target_: tool.transforms.MelWaveformTransform
 audio_duration: 30
 n_segments: 3
 sample_rate: 22050
