@@ -38,6 +38,7 @@ dependencies = [
     "pydantic>=2.10.4",
     "einops>=0.8.0",
     "alias-free-torch>=0.0.6",
+    "jupyter>=1.1.1",
 ]
 
 [tool.uv.sources]

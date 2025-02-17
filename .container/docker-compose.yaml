@@ -1,28 +1,22 @@
 version: '3.3'
 
 services:
-
   master-research:
-
     build:
       context: .
       dockerfile: Dockerfile
       shm_size: '16gb'
-
     container_name: mcn
-
     volumes:
       - ${PWD}:/master-research
-
     working_dir: /master-research
-
     shm_size: '16gb'
-
+    ports:
+      - "8888:8888"
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               capabilities: [ gpu ]
-
     tty: true
