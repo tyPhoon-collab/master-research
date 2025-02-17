@@ -1,8 +1,0 @@
-defaults:
-  - data: guitar_set
-  - train: default
-  - infer: default
-  - model: unet
-  - _self_
-
-mode: train

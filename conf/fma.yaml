@@ -1,8 +1,0 @@
-defaults:
-  - data: fma_small
-  - train: default
-  - infer: default
-  - model: fma_unet
-  - _self_
-
-mode: train

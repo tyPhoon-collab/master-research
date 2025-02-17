@@ -19,10 +19,3 @@ callbacks:
   # - _target_: lightning.pytorch.callbacks.BatchSizeFinder
   # - _target_: callback.discord.DiscordCallback
   #   webhook_url: xxx
-  # - _target_: music_controlnet.callbacks.UNetNeptuneLoggerCallback
-  #   timesteps: 1
-  #   n_mels: 128
-  #   length: 864
-  # - _target_: vocoder.callbacks.DiffWaveNeptuneLoggerCallback
-  #   test_dir: data/vocoder_test
-  #   hop_length: 256
