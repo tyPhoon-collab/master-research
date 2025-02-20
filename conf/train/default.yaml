@@ -1,5 +1,6 @@
 epochs: 1
 profiler: null
+precision: 16-mixed
 criterion:
   _target_: torch.nn.L1Loss
 accumulate_grad_batches: 1

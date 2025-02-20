@@ -4,6 +4,7 @@ from functools import cached_property
 from typing import Any, Literal
 
 from hydra.utils import instantiate
+from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
 from pydantic import BaseModel, PositiveFloat, PositiveInt
 
 Mode = Literal[
@@ -28,6 +29,7 @@ class TrainConfig(BaseModel):
     accumulate_grad_batches: PositiveInt = 1
 
     profiler: str | None = None
+    precision: _PRECISION_INPUT | None = None
 
     enable_default_callbacks: bool = True
 

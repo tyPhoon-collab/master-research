@@ -35,6 +35,7 @@ def _train(c: Config, datamodule, model):
         callbacks=callbacks,
         profiler=ct.profiler,
         accumulate_grad_batches=ct.accumulate_grad_batches,
+        precision=ct.precision,
     )
     trainer.fit(model, datamodule=datamodule)
 
