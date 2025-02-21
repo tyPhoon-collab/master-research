@@ -14,12 +14,15 @@ class DiffWaveLightning(L.LightningModule):
         n_mels: int,
         lr: float = 2e-4,
         criterion: torch.nn.Module | None = None,
+        num_train_timesteps: int = 50,
+        residual_layers: int = 30,
+        residual_channels: int = 64,
     ):
         super().__init__()
         self.save_hyperparameters()
 
         self.scheduler = DDPMScheduler(
-            num_train_timesteps=50,
+            num_train_timesteps=num_train_timesteps,
             beta_start=1e-4,
             beta_end=0.05,
         )
@@ -29,8 +32,8 @@ class DiffWaveLightning(L.LightningModule):
         self.model = DiffWave(
             DictConfig(
                 {
-                    "residual_layers": 30,
-                    "residual_channels": 64,
+                    "residual_layers": residual_layers,
+                    "residual_channels": residual_channels,
                     "dilation_cycle_length": 10,
                     "noise_schedule": [t.item() for t in self.scheduler.betas],
                     "n_mels": n_mels,
