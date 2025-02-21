@@ -42,9 +42,9 @@ class NormalizeWaveform(torch.nn.Module):
     def __init__(
         self,
         audio_duration: int,
-        n_segments: int,
-        sample_rate: int,
-        hop_length: int,
+        n_segments: int = 1,
+        sample_rate: int = 22050,
+        hop_length: int = 256,
         **kwargs,  # for pass another args
     ):
         super().__init__()
@@ -76,13 +76,13 @@ class Mel(torch.nn.Module):
     def __init__(
         self,
         audio_duration: int,
-        n_segments: int,
-        sample_rate: int,
-        n_fft: int,
-        win_length: int,
-        hop_length: int,
-        n_mels: int,
-        top_db: int,
+        n_segments: int = 1,
+        sample_rate: int = 22050,
+        n_fft: int = 1024,
+        win_length: int = 1024,
+        hop_length: int = 256,
+        n_mels: int = 128,
+        top_db: int = 80,
         **kwargs,  # for pass another args
     ):
         super().__init__()
@@ -124,12 +124,12 @@ class Mel(torch.nn.Module):
 class InverseMel(torch.nn.Module):
     def __init__(
         self,
-        sample_rate: int,
-        n_fft: int,
-        win_length: int,
-        hop_length: int,
-        n_mels: int,
-        top_db: int,
+        sample_rate: int = 22050,
+        n_fft: int = 1024,
+        win_length: int = 1024,
+        hop_length: int = 256,
+        n_mels: int = 128,
+        top_db: int = 80,
     ):
         super().__init__()
 
