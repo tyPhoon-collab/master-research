@@ -1,5 +1,7 @@
+from collections.abc import Callable
 from typing import Any
 
+import torch
 from lightning import LightningModule, Trainer
 
 from callback.neptune import NeptuneLoggerCallback
@@ -8,9 +10,14 @@ from vocoder.module.diffwave import DiffWaveLightning
 
 
 class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
-    def __init__(self, hop_length: int) -> None:
+    def __init__(
+        self,
+        hop_length: int,
+        mel_transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
+    ) -> None:
         super().__init__()
         self.hop_length = hop_length
+        self.mel_transform = mel_transform
 
     def on_validation_batch_start(
         self,
@@ -32,13 +39,17 @@ class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
             hop_length=self.hop_length,
         )
 
-        fig = plot_multiple(
-            [
-                plot_waveform(waveform.squeeze().cpu().numpy()),
-                plot_waveform(waveform_hat.squeeze().cpu().numpy()),
-                plot_spectrogram(mel.squeeze().cpu().numpy()),
-            ]
-        )
+        figs = [
+            plot_waveform(waveform.squeeze().cpu().numpy()),
+            plot_waveform(waveform_hat.squeeze().cpu().numpy()),
+            plot_spectrogram(mel.squeeze().cpu().numpy()),
+        ]
+
+        if self.mel_transform is not None:
+            mel_hat = self.mel_transform(mel)
+            figs.append(plot_spectrogram(mel_hat.squeeze().cpu().numpy()))
+
+        fig = plot_multiple(figs)
         img = fig_to_pil_image(fig)
 
         self.run["train/sample"].append(img)
