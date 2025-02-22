@@ -19,6 +19,14 @@ class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
         self.hop_length = hop_length
         self.mel_transform = mel_transform
 
+    def on_fit_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
+        super().on_fit_start(trainer, pl_module)
+
+        if self.mel_transform is not None:
+            op = getattr(self.mel_transform, "to", None)
+            if callable(op):
+                self.mel_transform = self.mel_transform.to(pl_module.device)  # type: ignore
+
     def on_validation_batch_start(
         self,
         trainer: Trainer,
@@ -46,7 +54,7 @@ class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
         ]
 
         if self.mel_transform is not None:
-            mel_hat = self.mel_transform(mel)
+            mel_hat = self.mel_transform(mel.squeeze())
             figs.append(plot_spectrogram(mel_hat.squeeze().cpu().numpy()))
 
         fig = plot_multiple(figs)
