@@ -1,6 +1,7 @@
-_target_: tool.preprocess.GuitarSetPreprocessor
+_target_: preprocess.guitar_set.GuitarSetPreprocessor
 splitter:
-  _target_: tool.preprocess.FixedLengthSplitter
+  _target_: preprocess.splitter.FixedLengthSplitter
   length: 10
 audio_dir: ./data/GuitarSet/audio_mono-mic
 output_dir: ./data/GuitarSet/preprocessed
+semitone_shifts: [-3, 0, 3]
