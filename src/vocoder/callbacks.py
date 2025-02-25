@@ -54,7 +54,7 @@ class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
         ]
 
         if self.mel_transform is not None:
-            mel_hat = self.mel_transform(waveform_hat.squeeze())
+            mel_hat = self.mel_transform(waveform_hat)
             figs.append(plot_spectrogram(mel_hat.squeeze().cpu().numpy()))
 
         fig = plot_multiple(figs)
