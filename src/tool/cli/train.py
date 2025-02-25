@@ -37,7 +37,7 @@ def _train(c: Config, datamodule, model):
         accumulate_grad_batches=ct.accumulate_grad_batches,
         precision=ct.precision,
     )
-    trainer.fit(model, datamodule=datamodule)
+    trainer.fit(model, datamodule=datamodule, ckpt_path=ct.ckpt_path)
 
     if isinstance(trainer_logger, NeptuneLogger):
         trainer_logger.log_model_summary(model=model, max_depth=-1)

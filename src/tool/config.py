@@ -25,6 +25,7 @@ def _instantiate_list(config: list[dict] | None) -> list[Any] | None:
 class TrainConfig(BaseModel):
     epochs: PositiveInt = 1
     lr: PositiveFloat = 1e-4
+    ckpt_path: str | None = None
 
     accumulate_grad_batches: PositiveInt = 1
 
