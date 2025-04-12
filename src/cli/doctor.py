@@ -7,7 +7,7 @@ from rich.console import Console
 from rich.table import Table
 from tqdm import tqdm
 
-from tool.config import Config
+from cli.config import Config
 
 console = Console()
 

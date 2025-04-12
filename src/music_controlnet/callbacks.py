@@ -2,7 +2,7 @@ from lightning import LightningModule, Trainer
 
 from callback.neptune import NeptuneLoggerCallback
 from music_controlnet.module.unet import UNetLightning
-from tool.plot import fig_to_pil_image, plot_spectrogram
+from visualize.plot import fig_to_pil_image, plot_spectrogram
 
 
 class UNetNeptuneLoggerCallback(NeptuneLoggerCallback):

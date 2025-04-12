@@ -1,4 +1,4 @@
-from tool.config import Config
+from cli.config import Config
 
 
 def preprocess(cfg: Config):

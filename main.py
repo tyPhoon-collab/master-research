@@ -3,7 +3,7 @@ from collections.abc import Callable
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-from tool.config import Config, Mode
+from cli.config import Config, Mode
 
 _MODE_REGISTRY: dict[Mode, Callable[[Config], None]] = {}
 
@@ -18,35 +18,35 @@ def register_mode(mode: Mode):
 
 @register_mode("train")
 def train(cfg: Config):
-    from tool.cli.train import train
+    from cli.train import train
 
     train(cfg)
 
 
 @register_mode("infer")
 def infer(cfg: Config):
-    from tool.cli.infer import inference
+    from cli.infer import inference
 
     inference(cfg)
 
 
 @register_mode("doctor")
 def doctor(cfg: Config):
-    from tool.cli.doctor import doctor
+    from cli.doctor import doctor
 
     doctor(cfg)
 
 
 @register_mode("clean")
 def clean(_):
-    from tool.cli.clean import clean
+    from cli.clean import clean
 
     clean()
 
 
 @register_mode("preprocess")
 def preprocess(cfg: Config):
-    from tool.cli.preprocess import preprocess
+    from cli.preprocess import preprocess
 
     preprocess(cfg)
 

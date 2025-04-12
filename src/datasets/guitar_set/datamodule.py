@@ -1,36 +1,32 @@
 import lightning as L
 from torch.utils.data import DataLoader, random_split
 
-from fma.dataset import FMADataset, _Transform
+from .dataset import GuitarSetDataset, _Transform
 
 
-class FMADataModule(L.LightningDataModule):
+class GuitarSetDataModule(L.LightningDataModule):
     def __init__(
         self,
         *,
-        metadata_dir: str,
+        annotation_dir: str,
         audio_dir: str,
-        sample_rate: int,
-        n_segments: int,
-        transform: _Transform | None,
         batch_size: int,
+        transform: _Transform | None = None,
         val_size: int = 1,
     ):
         super().__init__()
-        self.metadata_dir = metadata_dir
+
+        self.annotation_dir = annotation_dir
         self.audio_dir = audio_dir
-        self.sample_rate = sample_rate
-        self.n_segments = n_segments
-        self.batch_size = batch_size
         self.transform = transform
+        self.batch_size = batch_size
         self.val_size = val_size
 
-    def setup(self, stage: str):
-        dataset = FMADataset(
-            metadata_dir=self.metadata_dir,
+    def setup(self, stage=None):
+        dataset = GuitarSetDataset(
+            annotation_dir=self.annotation_dir,
             audio_dir=self.audio_dir,
-            sample_rate=self.sample_rate,
-            n_segments=self.n_segments,
+            sample_rate=22050,
             transform=self.transform,
         )
 

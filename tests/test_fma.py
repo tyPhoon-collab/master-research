@@ -1,11 +1,11 @@
+from cli.config import Config
 from tests.utils import load_data_config
-from tool.config import Config
 
 
 def test_fma_dataset():
     import torch
 
-    from fma.dataset import FMADataset
+    from datasets.fma.dataset import FMADataset
 
     c = load_data_config()
 

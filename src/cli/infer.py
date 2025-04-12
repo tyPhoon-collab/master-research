@@ -2,8 +2,8 @@ import os
 
 import torch
 
+from cli.config import Config
 from music_controlnet.module.unet import UNetLightning
-from tool.config import Config
 from vocoder.module.diffwave import DiffWaveLightning
 
 
@@ -68,7 +68,7 @@ def _check_ckpt_path(ckpt_path: str | None) -> str:
 def _save_waveform(save_dir: str, waveform: torch.Tensor):
     from soundfile import write
 
-    from tool.plot import plot_waveform
+    from visualize.plot import plot_waveform
 
     os.makedirs(save_dir, exist_ok=True)
 
@@ -80,7 +80,7 @@ def _save_waveform(save_dir: str, waveform: torch.Tensor):
 
 
 def _save_spectrogram(save_dir: str, mel: torch.Tensor):
-    from tool.plot import plot_spectrogram
+    from visualize.plot import plot_spectrogram
 
     os.makedirs(save_dir, exist_ok=True)
 

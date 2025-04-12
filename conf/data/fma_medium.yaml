@@ -2,7 +2,7 @@ defaults:
   - transform: mel
   - _self_
 
-_target_: fma.datamodule.FMADataModule
+_target_: datasets.fma.datamodule.FMADataModule
 metadata_dir: ./data/FMA/fma_metadata
 audio_dir: ./data/FMA/fma_medium
 sample_rate: 22050

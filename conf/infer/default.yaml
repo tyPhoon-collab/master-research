@@ -1,12 +1,12 @@
 output_dir: ./output
 
 generator:
-  _target_: tool.cli.infer.UNetGenerator
+  _target_: cli.infer.UNetGenerator
   ckpt_path: null
   n_mels: 128
   length: 864
 vocoder:
-  _target_: tool.cli.infer.DiffWaveVocoder
+  _target_: cli.infer.DiffWaveVocoder
   ckpt_path: null
   n_mels: 128
   hop_length: 256

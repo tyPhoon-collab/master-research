@@ -1,7 +1,7 @@
 from logging import getLogger
 
 from callback.optimizer_hooks import ScheduleFreeOptimizerCallback
-from tool.config import Config
+from cli.config import Config
 
 logger = getLogger(__name__)
 

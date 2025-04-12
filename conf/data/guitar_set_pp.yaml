@@ -2,7 +2,7 @@ defaults:
   - transform: mel
   - _self_
 
-_target_: guitar_set.datamodule.GuitarSetDataModule
+_target_: datasets.guitar_set.datamodule.GuitarSetDataModule
 annotation_dir: ./data/GuitarSet/annotation
 audio_dir: ./data/GuitarSet/preprocessed
 batch_size: 4

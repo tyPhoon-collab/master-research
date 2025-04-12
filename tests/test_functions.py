@@ -1,5 +1,5 @@
 def test_nearest_multiple():
-    from tool.functions import nearest_multiple
+    from transforms.functions import nearest_multiple
 
     assert nearest_multiple(1, 2) == 2
     assert nearest_multiple(2, 2) == 2
@@ -10,7 +10,7 @@ def test_nearest_multiple():
 
 
 def test_fixed_mel_length():
-    from tool.functions import fixed_mel_length
+    from transforms.functions import fixed_mel_length
 
     fixed = fixed_mel_length(
         audio_duration=30,

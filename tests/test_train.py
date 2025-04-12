@@ -1,10 +1,10 @@
+from cli.config import Config, TrainConfig
 from tests.utils import load_data_config
-from tool.config import Config, TrainConfig
 
 
 def test_train_unet():
-    from fma.metadata import NUM_GENRES
-    from tool.cli.train import train
+    from cli.train import train
+    from datasets.fma.metadata import NUM_GENRES
 
     c = Config(
         data=load_data_config(),
@@ -21,7 +21,7 @@ def test_train_unet():
 
 
 def test_train_diffwave():
-    from tool.cli.train import train
+    from cli.train import train
 
     c = Config(
         data=load_data_config(),

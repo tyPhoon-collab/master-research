@@ -5,7 +5,12 @@ import torch
 from lightning import LightningModule, Trainer
 
 from callback.neptune import NeptuneLoggerCallback
-from tool.plot import fig_to_pil_image, plot_multiple, plot_spectrogram, plot_waveform
+from visualize.plot import (
+    fig_to_pil_image,
+    plot_multiple,
+    plot_spectrogram,
+    plot_waveform,
+)
 from vocoder.module.diffwave import DiffWaveLightning
 
 
