@@ -2,12 +2,12 @@ import torch
 
 from .mel import Mel
 from .normalize import NormalizeWaveform
-from .reassign import Reassigned
+from .reassign import _Reassigned
 
 
 class ReassignedTransform:
     def __init__(self, **kwargs):
-        self.reassigned = Reassigned(**kwargs)
+        self.reassigned = _Reassigned(**kwargs)
 
     def __call__(self, x: torch.Tensor) -> dict:
         return {"reassigned": self.reassigned(x)}

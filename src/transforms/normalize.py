@@ -2,7 +2,7 @@ from logging import getLogger
 
 import torch
 
-from .functions import fixed_mel_length, fixed_waveform_length
+from .functions import fixed_time_axis_length, fixed_waveform_length
 from .util import Clamp, Mono, TrimOrPad
 
 logger = getLogger(__name__)
@@ -23,7 +23,7 @@ class NormalizeWaveform(torch.nn.Module):
             logger.warning(f"Unused kwargs provided: {kwargs}")
 
         fixed_length = fixed_waveform_length(
-            fixed_mel_length=fixed_mel_length(
+            fixed_mel_length=fixed_time_axis_length(
                 audio_duration=audio_duration,
                 n_segments=n_segments,
                 sample_rate=sample_rate,

@@ -6,7 +6,7 @@ def nearest_multiple(x: int, multiple: int) -> int:
         return x + multiple - remainder
 
 
-def fixed_mel_length(
+def fixed_time_axis_length(
     audio_duration: int,
     n_segments: int,
     sample_rate: int,

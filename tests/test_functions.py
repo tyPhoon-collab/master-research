@@ -10,9 +10,9 @@ def test_nearest_multiple():
 
 
 def test_fixed_mel_length():
-    from transforms.functions import fixed_mel_length
+    from transforms.functions import fixed_time_axis_length
 
-    fixed = fixed_mel_length(
+    fixed = fixed_time_axis_length(
         audio_duration=30,
         n_segments=3,
         sample_rate=22050,
