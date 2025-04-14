@@ -20,3 +20,16 @@ Dockerのコンテナ名はMusic ControlNetの略である、mcnとしている
 デバッグ時を考慮し、Macなどでも実行可能になっている
 
 uvをインストールして、`uv sync`を実行する
+
+## 実行例
+
+```bash
+# conf/config.yamlをもとに実行される
+uv run main.py
+
+# hydraの記法に従って、値を上書きすることができる
+uv run main.py model=infer
+
+# 上書き可能な値については、helpを参照
+uv run main.py -h
+```
