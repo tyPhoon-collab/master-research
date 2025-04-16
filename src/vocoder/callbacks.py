@@ -18,19 +18,19 @@ class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
     def __init__(
         self,
         hop_length: int,
-        mel_transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
+        post_transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
     ) -> None:
         super().__init__()
         self.hop_length = hop_length
-        self.mel_transform = mel_transform
+        self.post_transform = post_transform
 
     def on_fit_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
         super().on_fit_start(trainer, pl_module)
 
-        if self.mel_transform is not None:
-            op = getattr(self.mel_transform, "to", None)
+        if self.post_transform is not None:
+            op = getattr(self.post_transform, "to", None)
             if callable(op):
-                self.mel_transform = self.mel_transform.to(pl_module.device)  # type: ignore
+                self.post_transform = self.post_transform.to(pl_module.device)  # type: ignore
 
     def on_validation_batch_start(
         self,
@@ -58,8 +58,8 @@ class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
             plot_spectrogram(spectrogram.squeeze().cpu().numpy()),
         ]
 
-        if self.mel_transform is not None:
-            mel_hat = self.mel_transform(waveform_hat)
+        if self.post_transform is not None:
+            mel_hat = self.post_transform(waveform_hat)
             figs.append(plot_spectrogram(mel_hat.squeeze().cpu().numpy()))
 
         fig = plot_multiple(figs)
