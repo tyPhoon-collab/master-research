@@ -14,12 +14,15 @@ class ScheduleFreeOptimizerCallback(Callback):
     """
 
     def on_train_epoch_start(self, trainer, pl_module):
+        logger.info("on_train_epoch_start")
         self._set_optimizers_mode(pl_module, "train")
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
+        logger.info("on_save_checkpoint")
         self._set_optimizers_mode(pl_module, "eval")
 
     def on_load_checkpoint(self, trainer, pl_module, checkpoint):
+        logger.info("on_load_checkpoint")
         self._set_optimizers_mode(pl_module, "train")
 
     def _set_optimizers_mode(self, pl_module, mode):
