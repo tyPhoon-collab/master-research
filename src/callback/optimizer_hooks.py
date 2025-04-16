@@ -1,4 +1,8 @@
+from logging import getLogger
+
 from lightning import Callback
+
+logger = getLogger(__name__)
 
 
 class ScheduleFreeOptimizerCallback(Callback):
@@ -29,3 +33,4 @@ class ScheduleFreeOptimizerCallback(Callback):
             optimizer = getattr(pl_module, opt_name, None)
             if optimizer and callable(getattr(optimizer, mode, None)):
                 getattr(optimizer, mode)()
+                logger.info(f"{opt_name} set to {mode} mode.")
