@@ -24,7 +24,7 @@ def test_fma_dataset():
     batch = dataset[0]
 
     waveform = batch["waveform"]
-    mel = batch["mel"]
+    mel = batch["spectrogram"]
     genre = batch["genre"]
 
     assert isinstance(waveform, torch.Tensor)
@@ -50,7 +50,7 @@ def test_fma_datamodule():
 
     batch = next(iter(train_dataloader))
 
-    mel = batch["mel"]
+    mel = batch["spectrogram"]
     genre = batch["genre"]
 
     assert mel.ndim == 4  # batch, channel, height, width

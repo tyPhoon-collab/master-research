@@ -52,7 +52,7 @@ class DiffWaveLightning(L.LightningModule):
 
     def training_step(self, batch, batch_idx):
         waveform = batch["waveform"]
-        spectrogram = batch["mel"]
+        spectrogram = batch["spectrogram"]
 
         noise = torch.randn_like(waveform)
         timestep = torch.randint(

@@ -2,15 +2,27 @@ import torch
 
 from .mel import Mel
 from .normalize import NormalizeWaveform
-from .reassign import _Reassigned
+from .reassign import Reassigned
 
 
 class ReassignedTransform:
     def __init__(self, **kwargs):
-        self.reassigned = _Reassigned(**kwargs)
+        self.reassigned = Reassigned(**kwargs)
 
     def __call__(self, x: torch.Tensor) -> dict:
-        return {"reassigned": self.reassigned(x)}
+        return {"spectrogram": self.reassigned(x)}
+
+
+class ReassignedWaveformTransform:
+    def __init__(self, **kwargs):
+        self.reassigned = Reassigned(**kwargs)
+        self.waveform = NormalizeWaveform(**kwargs)
+
+    def __call__(self, x: torch.Tensor) -> dict:
+        return {
+            "spectrogram": self.reassigned(x),
+            "waveform": self.waveform(x),
+        }
 
 
 class MelTransform:
@@ -19,7 +31,7 @@ class MelTransform:
 
     def __call__(self, x: torch.Tensor) -> dict:
         return {
-            "mel": self.mel(x),
+            "spectrogram": self.mel(x),
         }
 
 
@@ -30,6 +42,6 @@ class MelWaveformTransform:
 
     def __call__(self, x: torch.Tensor) -> dict:
         return {
-            "mel": self.mel(x),
+            "spectrogram": self.mel(x),
             "waveform": self.waveform(x),
         }

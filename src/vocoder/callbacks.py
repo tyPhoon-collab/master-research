@@ -45,17 +45,17 @@ class DiffWaveNeptuneLoggerCallback(NeptuneLoggerCallback):
 
     def _append(self, model: DiffWaveLightning, batch: Any) -> None:
         waveform = batch["waveform"]
-        mel = batch["mel"]
+        spectrogram = batch["spectrogram"]
 
         waveform_hat = model.generate(
-            mel,
+            spectrogram,
             hop_length=self.hop_length,
         )
 
         figs = [
             plot_waveform(waveform.squeeze().cpu().numpy()),
             plot_waveform(waveform_hat.squeeze().cpu().numpy()),
-            plot_spectrogram(mel.squeeze().cpu().numpy()),
+            plot_spectrogram(spectrogram.squeeze().cpu().numpy()),
         ]
 
         if self.mel_transform is not None:

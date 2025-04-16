@@ -18,8 +18,8 @@ class Reassigned(torch.nn.Module):
         win_length: int = 1024,
         freq_bins: np.ndarray | None = None,
         density: bool = False,
-        top_db: int = 80,
-        reassign_times: bool = True,
+        # top_db: int = 80,
+        reassign_times: bool = False,
     ):
         super().__init__()
 
@@ -57,14 +57,14 @@ class _Reassigned(torch.nn.Module):
     def __init__(
         self,
         audio_duration: float,
-        sample_rate: int = 22050,
-        interval: float | None = None,
-        n_fft: int = 1024,
-        win_length: int = 1024,
-        hop_length: int = 256,
-        freq_bins: np.ndarray | None = None,
-        density: bool = False,
-        reassign_times: bool = True,
+        sample_rate: int,
+        interval: float | None,
+        n_fft: int,
+        win_length: int,
+        hop_length: int,
+        freq_bins: np.ndarray | None,
+        density: bool,
+        reassign_times: bool,
     ):
         super().__init__()
         self.audio_duration = audio_duration

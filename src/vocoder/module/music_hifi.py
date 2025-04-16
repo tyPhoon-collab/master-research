@@ -63,9 +63,9 @@ class MusicHiFiLightning(L.LightningModule):
         optimizer_g, optimizer_d = self.optimizers()  # type: ignore
 
         waveform = batch["waveform"]
-        mel = batch["mel"].squeeze(1)
+        spectrogram = batch["spectrogram"].squeeze(1)
 
-        waveform_hat: torch.Tensor = self.generator(mel)
+        waveform_hat: torch.Tensor = self.generator(spectrogram)
 
         # Discriminator
         loss_d = self.gan_loss.discriminator_loss(
