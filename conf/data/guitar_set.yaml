@@ -6,6 +6,7 @@ _target_: datasets.guitar_set.datamodule.GuitarSetDataModule
 annotation_dir: ./data/GuitarSet/annotation
 audio_dir: ./data/GuitarSet/audio_mono-mic
 batch_size: 4
+sample_rate: 22050
 
 transform:
   audio_duration: 10

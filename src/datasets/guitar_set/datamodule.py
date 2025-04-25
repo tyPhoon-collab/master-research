@@ -11,6 +11,7 @@ class GuitarSetDataModule(L.LightningDataModule):
         annotation_dir: str,
         audio_dir: str,
         batch_size: int,
+        sample_rate: int = 22050,
         transform: _Transform | None = None,
         val_size: int = 1,
     ):
@@ -20,13 +21,14 @@ class GuitarSetDataModule(L.LightningDataModule):
         self.audio_dir = audio_dir
         self.transform = transform
         self.batch_size = batch_size
+        self.sample_rate = sample_rate
         self.val_size = val_size
 
     def setup(self, stage=None):
         dataset = GuitarSetDataset(
             annotation_dir=self.annotation_dir,
             audio_dir=self.audio_dir,
-            sample_rate=22050,
+            sample_rate=self.sample_rate,
             transform=self.transform,
         )
 
