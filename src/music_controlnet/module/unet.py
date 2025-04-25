@@ -47,8 +47,10 @@ class UNetLightning(L.LightningModule):
         self.criterion = criterion or torch.nn.L1Loss()
 
     def training_step(self, batch, batch_idx):
-        mel = batch.get("mel")
+        mel = batch.get("spectrogram")
         genre = batch.get("genre") if self.model.config.num_class_embeds else None  # type: ignore
+
+        assert mel is not None, "mel is None"
 
         noise = torch.randn_like(mel)
         timesteps = torch.randint(
