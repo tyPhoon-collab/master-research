@@ -61,7 +61,7 @@ url = "https://download.pytorch.org/whl/cu124"
 explicit = true
 
 [tool.setuptools.packages.find]
-where = ["src", "src/BigVGAN"]
+where = ["src"]
 
 [build-system]
 requires = ["setuptools", "wheel"]
