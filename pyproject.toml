@@ -37,6 +37,15 @@ dependencies = [
     "einops>=0.8.0",
     "alias-free-torch>=0.0.6",
     "jupyter>=1.1.1",
+    "numpy>=2.0.2",
+    "scipy>=1.14.1",
+    "tensorboard>=2.19.0",
+    "soundfile>=0.12.1",
+    "pesq>=0.0.4",
+    "auraloss>=0.4.0",
+    "nnaudio>=0.3.3",
+    "ninja>=1.11.1.4",
+    "huggingface-hub>=0.26.2",
 ]
 
 [tool.uv.sources]
@@ -52,7 +61,7 @@ url = "https://download.pytorch.org/whl/cu124"
 explicit = true
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "src/BigVGAN"]
 
 [build-system]
 requires = ["setuptools", "wheel"]
