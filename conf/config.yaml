@@ -1,7 +1,7 @@
 defaults:
   - data: fma_small
   - train: default
-  - infer: default
+  - infer: unet_bigvgan
   - model: unet
   - preprocess: guitar_set
   - _self_

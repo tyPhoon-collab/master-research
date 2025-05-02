@@ -1,0 +1,10 @@
+output_dir: ./output
+
+generator:
+  _target_: cli.infer.UNetGenerator
+  ckpt_path: null
+  n_mels: 128
+  length: 864
+  timesteps: 1000
+vocoder:
+  _target_: cli.infer.BigVGANVocoder

@@ -2,24 +2,29 @@ import os
 
 import torch
 
+from bigvgan import BigVGAN
 from cli.config import Config
 from music_controlnet.module.unet import UNetLightning
 from vocoder.module.diffwave import DiffWaveLightning
 
 
 class UNetGenerator:
-    def __init__(self, ckpt_path: str, n_mels: int, length: int):
+    def __init__(
+        self, ckpt_path: str, n_mels: int, length: int, timesteps: int = 1000
+    ) -> None:
         self.ckpt_path = _check_ckpt_path(ckpt_path)
 
         self.model = UNetLightning.load_from_checkpoint(self.ckpt_path)
         # self.n_mels = self.model.n_mels
         self.n_mels = n_mels
         self.length = length
+        self.timesteps = timesteps
 
     def __call__(self):
         mel = self.model.generate(
             n_mels=self.n_mels,
             length=self.length,
+            timesteps=self.timesteps,
         )
         return mel
 
@@ -43,12 +48,33 @@ class DiffWaveVocoder:
         return waveform
 
 
+class BigVGANVocoder:
+    def __init__(self) -> None:
+        model = BigVGAN.from_pretrained(
+            "nvidia/bigvgan_v2_44khz_128band_256x", use_cuda_kernel=False
+        )
+
+        # remove weight norm in the model and set to eval
+        model.remove_weight_norm()
+        model = model.eval().to("cpu")
+
+        self.model = model
+
+    def __call__(self, mel: torch.Tensor) -> torch.Tensor:
+        # generate waveform from mel
+        with torch.inference_mode():
+            wav_gen = self.model(
+                mel
+            )  # wav_gen is FloatTensor with shape [B(1), 1, T_time] and values in [-1, 1]
+        return wav_gen
+
+
 def inference(cfg: Config) -> torch.Tensor:
     gen = cfg.infer.generator_object
     voc = cfg.infer.vocoder_object
 
     mel = gen()
-    waveform = voc(mel)
+    waveform = voc(mel.squeeze(0))
 
     _save_spectrogram(cfg.infer.save_dir, mel)
     _save_waveform(cfg.infer.save_dir, waveform)
