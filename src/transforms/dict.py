@@ -1,6 +1,6 @@
 import torch
 
-from .mel import Mel
+from .mel import BigVGANMel, Mel
 from .normalize import NormalizeWaveform
 from .reassign import Reassigned
 
@@ -28,6 +28,16 @@ class ReassignedWaveformTransform:
 class MelTransform:
     def __init__(self, **kwargs):
         self.mel = Mel(**kwargs)
+
+    def __call__(self, x: torch.Tensor) -> dict:
+        return {
+            "spectrogram": self.mel(x),
+        }
+
+
+class BigVGANMelTransform:
+    def __init__(self, **kwargs):
+        self.mel = BigVGANMel(**kwargs)
 
     def __call__(self, x: torch.Tensor) -> dict:
         return {

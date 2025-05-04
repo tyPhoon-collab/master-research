@@ -1,6 +1,7 @@
 from logging import getLogger
 
 import torch
+from meldataset import mel_spectrogram
 from torchaudio.transforms import (
     AmplitudeToDB,
     GriffinLim,
@@ -13,6 +14,49 @@ from .functions import fixed_time_axis_length
 from .util import Clamp, Lambda, Mono, Scale, TrimOrPad
 
 logger = getLogger(__name__)
+
+
+class BigVGANMel(torch.nn.Module):
+    def __init__(
+        self,
+        audio_duration: int,
+        n_segments: int,
+        n_fft: int,
+        num_mels: int,
+        sampling_rate: int,
+        hop_size: int,
+        win_size: int,
+        fmin: int,
+        fmax: int,
+    ):
+        super().__init__()
+
+        fixed_length = fixed_time_axis_length(
+            audio_duration=audio_duration,
+            n_segments=n_segments,
+            sample_rate=sampling_rate,
+            hop_length=hop_size,
+        )
+
+        self.transform = torch.nn.Sequential(
+            Mono(),
+            Lambda(
+                lambda x: mel_spectrogram(
+                    x,
+                    n_fft=n_fft,
+                    num_mels=num_mels,
+                    sampling_rate=sampling_rate,
+                    hop_size=hop_size,
+                    win_size=win_size,
+                    fmin=fmin,
+                    fmax=fmax,
+                )
+            ),
+            TrimOrPad(target_length=fixed_length, mode="replicate"),
+        )
+
+    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+        return self.transform(waveform)
 
 
 class Mel(torch.nn.Module):
