@@ -13,6 +13,7 @@ class UNetLightning(L.LightningModule):
         lr: float = 1e-4,
         criterion: torch.nn.Module | None = None,
         num_class_embeds: int | None = None,
+        clip_sample: bool = True,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -41,7 +42,9 @@ class UNetLightning(L.LightningModule):
             layers_per_block=1,
         )
 
-        self.scheduler = DDPMScheduler()
+        self.scheduler = DDPMScheduler(
+            clip_sample=clip_sample,
+        )
 
         self.lr = lr
         self.criterion = criterion or torch.nn.L1Loss()
